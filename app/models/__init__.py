@@ -1,0 +1,63 @@
+"""
+Manager Show — Registro de todos os Models SQLAlchemy
+
+Este __init__.py importa todos os models para que o Alembic e o
+SQLAlchemy possam descobrir automaticamente as tabelas ao gerar
+migrações (autogenerate).
+
+IMPORTANTE: Todo novo model criado DEVE ser importado aqui.
+"""
+
+from app.models.base import Base, TenantMixin, TimestampMixin
+from app.models.tenant import Tenant, TenantStatus
+from app.models.user import User
+from app.models.role import Role, DEFAULT_PERMISSIONS
+from app.models.artist import Artist
+from app.models.show import (
+    Show,
+    ShowStatus,
+    ClientType,
+    NegotiationType,
+)
+from app.models.contractor import Contractor
+from app.models.venue import Venue
+from app.models.financial_transaction import (
+    FinancialTransaction,
+    TransactionType,
+    TransactionCategory,
+)
+from app.models.commission import Commission, CommissionBase
+from app.models.contract import Contract, ContractStatus
+from app.models.logistics_timeline import LogisticsTimeline
+from app.models.city_base_cost import CityBaseCost
+from app.models.show_checkin import ShowCheckin
+
+__all__ = [
+    # Base
+    "Base",
+    "TenantMixin",
+    "TimestampMixin",
+    # Entidades
+    "Tenant",
+    "TenantStatus",
+    "User",
+    "Role",
+    "DEFAULT_PERMISSIONS",
+    "Artist",
+    "Show",
+    "ShowStatus",
+    "ClientType",
+    "NegotiationType",
+    "Contractor",
+    "Venue",
+    "FinancialTransaction",
+    "TransactionType",
+    "TransactionCategory",
+    "Commission",
+    "CommissionBase",
+    "Contract",
+    "ContractStatus",
+    "LogisticsTimeline",
+    "CityBaseCost",
+    "ShowCheckin",
+]

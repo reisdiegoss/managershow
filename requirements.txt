@@ -1,0 +1,32 @@
+# Manager Show — Dependências Python (fallback do pyproject.toml)
+
+# --- Web Framework ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+
+# --- Banco de Dados ---
+sqlalchemy[asyncio]>=2.0.30
+asyncpg>=0.30.0
+alembic>=1.13.0
+psycopg2-binary>=2.9.9
+
+# --- Validação e Configuração ---
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+
+# --- Cache e Filas ---
+redis>=5.0.0
+celery[redis]>=5.4.0
+
+# --- Autenticação (Clerk JWT) ---
+python-jose[cryptography]>=3.3.0
+httpx>=0.27.0
+
+# --- Utilitários ---
+python-dotenv>=1.0.0
+
+# --- Dev ---
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+ruff>=0.5.0
