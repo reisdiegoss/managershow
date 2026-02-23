@@ -1,0 +1,54 @@
+# =============================================================================
+# Manager Show — .gitignore
+# =============================================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Variáveis de ambiente (NUNCA commitar .env real)
+.env
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic
+alembic/versions/__pycache__/
+
+# Coverage
+htmlcov/
+.coverage
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Scripts
+github.bat
+.agent/
+
+# Docs
+CHANGELOG.md
+GUIA_REFERENCIA.md
+GUIA_TECNICO.md
+ROADMAP.md
+
