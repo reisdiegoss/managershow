@@ -36,9 +36,16 @@ export interface TimelineEvent {
     is_highlight?: boolean; // Para destacar o horário do SHOW
 }
 
+export type DiariaType = 'PADRAO' | 'MAIS_MEIA' | 'MAIS_UMA' | 'SEM_DIARIA' | 'OUTRO';
+export type CacheType = 'PENDENTE' | 'PADRAO' | 'MEIO' | 'DOBRADO' | 'SEM_CACHE' | 'FALTOU';
+
 export interface TeamMember {
     id: string;
     name: string;
     role: string; // Ex: 'Músico', 'Técnico', 'Roadie'
-    isPresent: boolean; // Estado do check-in
+    isPresent: boolean; // Estado do check-in (LEGADO - será substituído por cache_type)
+    diaria_type: DiariaType;
+    diaria_justification?: string;
+    cache_type: CacheType;
+    is_eventual: boolean; // Flag para freelancers adicionados na hora
 }

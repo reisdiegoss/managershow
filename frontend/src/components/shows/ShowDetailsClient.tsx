@@ -33,28 +33,92 @@ import { Card } from "@/components/ui/card";
 import { Receipt } from "lucide-react";
 import { DaySheetTab } from "./DaySheetTab";
 import { TeamCheckin } from "./TeamCheckin";
+import PreShowCrew from "./PreShowCrew";
 import { QuickExpenseForm } from "./QuickExpenseForm";
 import { FinanceTab } from "./FinanceTab";
-import { Truck } from "lucide-react";
+import { Truck, Users } from "lucide-react";
+import { TeamMember, DiariaType, CacheType } from "@/types/show";
 
 interface ShowDetailsClientProps {
     showId: string;
 }
 
+const mockTeam: TeamMember[] = [
+    { id: '1', name: 'Diego Reis', role: 'Road Manager', isPresent: true, diaria_type: 'PADRAO', cache_type: 'PENDENTE', is_eventual: false },
+    { id: '2', name: 'Alok Petrillo', role: 'Artista', isPresent: true, diaria_type: 'PADRAO', cache_type: 'PENDENTE', is_eventual: false },
+    { id: '3', name: 'Zezé Di Camargo', role: 'Vocalista', isPresent: false, diaria_type: 'PADRAO', cache_type: 'PENDENTE', is_eventual: false },
+    { id: '4', name: 'Luciano', role: 'Segunda Voz', isPresent: false, diaria_type: 'PADRAO', cache_type: 'PENDENTE', is_eventual: false },
+    { id: '5', name: 'Carlos Tech', role: 'Luz & Vídeo', isPresent: true, diaria_type: 'PADRAO', cache_type: 'PENDENTE', is_eventual: false },
+];
+
 export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
     const [show, setShow] = useState<Show | null>(null);
     const [transactions, setTransactions] = useState<FinancialTransaction[]>([]);
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>(mockTeam);
     const [loading, setLoading] = useState(true);
     const [loadingTransactions, setLoadingTransactions] = useState(false);
     const [uploading, setUploading] = useState(false);
     const { api, updateShowStatus, uploadContract } = useApi();
     const { toast } = useToast();
 
+    /**
+     * Geração de PDF do Contrato
+     */
+    const handleGeneratePDF = async () => {
+        try {
+            const response = await api.get(`/client/contracts/${showId}/pdf`, {
+                responseType: 'blob'
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Contrato_${show?.artist_id}_${show?.location_city}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            toast({ title: "PDF Gerado!", description: "A minuta do contrato foi baixada com sucesso." });
+        } catch (error) {
+            toast({ title: "Erro ao gerar PDF", variant: "destructive" });
+        }
+    };
+
+    /**
+     * Atualização de Status do Show
+     */
+    const handleStatusChange = async (newStatus: any) => {
+        try {
+            await updateShowStatus(showId, newStatus);
+            toast({ title: "Status Atualizado!", description: `Show marcado como ${newStatus}.` });
+            await fetchShowDetails();
+        } catch (error) {
+            toast({ title: "Erro na atualização", variant: "destructive" });
+        }
+    };
+
+    /**
+     * Upload de Contrato Assinado
+     */
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setUploading(true);
+            await uploadContract(showId, file);
+            toast({ title: "Upload Concluído!", description: "O contrato assinado foi anexado com sucesso." });
+            await fetchShowDetails();
+        } catch (error) {
+            toast({ title: "Erro no Upload", description: "Falha ao enviar o arquivo para a nuvem.", variant: "destructive" });
+        } finally {
+            setUploading(false);
+        }
+    };
     const fetchShowDetails = async () => {
         try {
             setLoading(true);
             const response = await api.get(`/client/shows/${showId}`);
             setShow(response.data);
+            // Simulação: Se a API retornasse membros da equipe
+            // setTeamMembers(response.data.crew || mockTeam);
         } catch (error) {
             toast({
                 title: "Erro ao carregar show",
@@ -83,50 +147,45 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
         fetchTransactions();
     }, [showId]);
 
-    const handleGeneratePDF = async () => {
+    /**
+     * Atualização de membro da equipe com Optimistic UI
+     */
+    const handleUpdateMember = async (memberId: string, updates: Partial<TeamMember>) => {
+        const oldTeam = [...teamMembers];
+        setTeamMembers(prev => prev.map(m => m.id === memberId ? { ...m, ...updates } : m));
+
         try {
-            const response = await api.get(`/client/contracts/${showId}/pdf`, {
-                responseType: 'blob'
-            });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Contrato_${show?.artist_id}_${show?.location_city}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            toast({ title: "PDF Gerado!", description: "A minuta do contrato foi baixada com sucesso." });
+            // Chamada background para o backend
+            // await api.patch(`/client/shows/${showId}/crew/${memberId}`, updates);
         } catch (error) {
-            toast({ title: "Erro ao gerar PDF", variant: "destructive" });
+            setTeamMembers(oldTeam);
+            toast({ title: "Erro na sincronização", description: "Não foi possível salvar as alterações.", variant: "destructive" });
         }
     };
 
-    const handleStatusChange = async (newStatus: any) => {
+    /**
+     * Adição de colaborador eventual
+     */
+    const handleAddEventual = async (name: string, role: string) => {
+        const newMember: TeamMember = {
+            id: Math.random().toString(36).substr(2, 9),
+            name,
+            role,
+            isPresent: true,
+            diaria_type: 'PADRAO',
+            cache_type: 'PENDENTE',
+            is_eventual: true
+        };
+        setTeamMembers(prev => [newMember, ...prev]);
+
         try {
-            await updateShowStatus(showId, newStatus);
-            toast({ title: "Status Atualizado!", description: `Show marcado como ${newStatus}.` });
-            // Reatividade: fetch atualiza o estado local e libera a trava
-            await fetchShowDetails();
+            // await api.post(`/client/shows/${showId}/crew`, newMember);
         } catch (error) {
-            toast({ title: "Erro na atualização", variant: "destructive" });
+            toast({ title: "Erro ao adicionar", variant: "destructive" });
         }
     };
 
-    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        try {
-            setUploading(true);
-            await uploadContract(showId, file);
-            toast({ title: "Upload Concluído!", description: "O contrato assinado foi anexado com sucesso." });
-            await fetchShowDetails();
-        } catch (error) {
-            toast({ title: "Erro no Upload", description: "Falha ao enviar o arquivo para a nuvem.", variant: "destructive" });
-        } finally {
-            setUploading(false);
-        }
-    };
-
+    // Funcionalidades de Equipe Finalizadas
     if (loading) {
         return (
             <div className="flex h-[80vh] items-center justify-center">
@@ -188,7 +247,7 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                         <TabsTrigger value="contract" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Contratos</TabsTrigger>
                         <TabsTrigger value="logistics" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Logística</TabsTrigger>
                         <TabsTrigger value="roteiro" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Roteiro</TabsTrigger>
-                        <TabsTrigger value="operacao" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Operação</TabsTrigger>
+                        <TabsTrigger value="equipe" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Time & Estrada</TabsTrigger>
                         <TabsTrigger value="finance" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Financeiro</TabsTrigger>
                     </TabsList>
                 </div>
@@ -367,18 +426,30 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                     />
                 </TabsContent>
 
-                <TabsContent value="operacao" className="pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="md:col-span-2">
-                            <TeamCheckin showId={showId} />
+                <TabsContent value="equipe" className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-8">
+                            {/* Pré-Show: Escala e Diárias */}
+                            <PreShowCrew
+                                members={teamMembers}
+                                onUpdateMember={handleUpdateMember}
+                                onAddEventual={handleAddEventual}
+                            />
                         </div>
-                        <div className="space-y-6">
+                        <div className="space-y-8">
+                            {/* Fechamento: Check-in e Cachês */}
+                            <TeamCheckin
+                                showId={showId}
+                                teamMembers={teamMembers}
+                                onUpdateCache={(id, type) => handleUpdateMember(id, { cache_type: type })}
+                            />
+
                             <Card className="rounded-[2.5rem] bg-indigo-900 p-8 text-white shadow-xl relative overflow-hidden">
                                 <div className="relative z-10 space-y-4">
                                     <Truck className="h-8 w-8 text-indigo-400" />
                                     <h3 className="text-xl font-black italic uppercase tracking-tighter">Modo Estrada</h3>
                                     <p className="text-xs font-medium text-indigo-200 leading-relaxed">
-                                        Registe a presença da equipa para cálculo de diárias e anexe recibos de custos imprevistos instantaneamente.
+                                        Registre recibos de custos imprevistos instantaneamente durante a viagem.
                                     </p>
                                     <QuickExpenseForm showId={showId} onSuccess={fetchTransactions} />
                                 </div>
