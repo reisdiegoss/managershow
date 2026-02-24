@@ -37,6 +37,7 @@ const cadastroItems = [
     { label: "Artistas", icon: Mic2, href: "/artistas" },
     { label: "Contratantes", icon: Building2, href: "/contratantes" },
     { label: "Locais (Venues)", icon: MapPin, href: "/locais" },
+    { label: "Templates", icon: FileText, href: "/templates" },
 ];
 
 export default function DashboardLayout({

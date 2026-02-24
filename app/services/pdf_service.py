@@ -1,7 +1,7 @@
 import io
 import os
 from datetime import datetime
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Template
 from xhtml2pdf import pisa
 from fastapi import HTTPException
 
@@ -10,6 +10,33 @@ TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templat
 template_env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 
 class PDFService:
+    @staticmethod
+    async def generate_pdf_from_string(html_content: str, context: dict) -> io.BytesIO:
+        """
+        Renderiza um template HTML (string) usando Jinja2 e converte para PDF.
+        Retorna um stream de bytes.
+        """
+        try:
+            # 1. Renderiza o HTML com as variáveis fornecidas
+            # Injetar timestamp global se não houver
+            if "generated_at" not in context:
+                context["generated_at"] = datetime.now().strftime("%d/%m/%Y %H:%M")
+            
+            template = Template(html_content)
+            rendered_html = template.render(**context)
+
+            # 2. Converte para PDF
+            result = io.BytesIO()
+            pisa_status = pisa.CreatePDF(rendered_html, dest=result)
+            
+            if pisa_status.err:
+                raise HTTPException(status_code=500, detail="Erro interno ao gerar o arquivo PDF dinâmico.")
+            
+            result.seek(0)
+            return result
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Erro no motor dinâmico de PDF: {str(e)}")
+
     @staticmethod
     def generate_pdf(html_content: str) -> io.BytesIO:
         """

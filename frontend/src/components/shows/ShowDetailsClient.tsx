@@ -38,6 +38,8 @@ import { QuickExpenseForm } from "./QuickExpenseForm";
 import { FinanceTab } from "./FinanceTab";
 import { Truck, Users } from "lucide-react";
 import { TeamMember, DiariaType, CacheType } from "@/types/show";
+import { GenerateDocumentModal } from "./GenerateDocumentModal";
+import { DocumentTemplate } from "@/types/document";
 
 interface ShowDetailsClientProps {
     showId: string;
@@ -287,64 +289,74 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                 </TabsContent>
 
                 <TabsContent value="contract" className="pt-6">
-                    <div className="rounded-3xl bg-white border border-slate-100 p-8 shadow-sm space-y-8">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                            <div className="space-y-2">
-                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Módulo de Gestão de Contratos</h3>
-                                <p className="text-xs text-slate-500">Emita a minuta padrão ou anexe o documento juridicamente validado.</p>
+                    <div className="space-y-6">
+                        {/* Seção de Documentos Dinâmicos */}
+                        <div className="rounded-3xl bg-white border border-slate-100 p-8 shadow-sm space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Documentos e Propostas</h3>
+                                    <p className="text-xs text-slate-500">Selecione um template dinâmico para gerar o documento com os dados do show.</p>
+                                </div>
+                                <Link href="/templates">
+                                    <Button variant="outline" size="sm" className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-2">
+                                        <FileText size={14} /> Gerenciar Templates
+                                    </Button>
+                                </Link>
                             </div>
-                            <Button
-                                onClick={handleGeneratePDF}
-                                className="rounded-2xl bg-indigo-600 text-[10px] font-black uppercase tracking-widest px-8"
-                            >
-                                <FileText className="mr-2 h-4 w-4" /> Gerar Minuta de Contrato
-                            </Button>
+
+                            {/* Listagem Dinâmica de Templates para o Show */}
+                            <DynamicTemplatesList showId={showId} />
                         </div>
 
-                        <Separator className="bg-slate-100" />
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            <div className="space-y-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Upload de Documento Assinado</p>
-                                <input
-                                    type="file"
-                                    id="contract-upload"
-                                    className="hidden"
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                    onChange={handleFileUpload}
-                                />
-                                <div
-                                    onClick={() => document.getElementById('contract-upload')?.click()}
-                                    className={cn(
-                                        "border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center space-y-4 hover:border-indigo-400 transition-all cursor-pointer",
-                                        uploading && "opacity-50 pointer-events-none"
-                                    )}
-                                >
-                                    <div className="bg-indigo-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
-                                        {uploading ? <Loader2 className="h-6 w-6 text-indigo-600 animate-spin" /> : <Upload className="h-6 w-6 text-indigo-600" />}
-                                    </div>
-                                    <p className="text-xs font-bold text-slate-600 leading-tight">
-                                        {uploading ? "Enviando arquivo..." : "Arraste o arquivo aqui ou clique para selecionar"}
-                                    </p>
-                                    <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">PDF, JPG (Máx 10MB)</p>
-                                </div>
+                        {/* Seção de Upload de Contrato Assinado (Legado / Processo de Validação) */}
+                        <div className="rounded-3xl bg-white border border-slate-100 p-8 shadow-sm space-y-8">
+                            <div className="space-y-2">
+                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Finalização Jurídica</h3>
+                                <p className="text-xs text-slate-500">Anexe o contrato assinado para validar a etapa e liberar a logística.</p>
                             </div>
 
-                            <div className="space-y-6">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Validação Ética</p>
-                                <div className="rounded-2xl bg-amber-50 border border-amber-100 p-6 space-y-4">
-                                    <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                                        Ao marcar como assinado, o sistema desbloqueia os fluxos logísticos e financeiros.
-                                        Certifique-se de que a assinatura digital ou física foi conferida.
-                                    </p>
-                                    <Button
-                                        onClick={() => handleStatusChange("ASSINADO")}
-                                        disabled={show.status === "ASSINADO"}
-                                        className="w-full rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest"
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-center md:text-left">
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Upload de Arquivo Assinado</p>
+                                    <input
+                                        type="file"
+                                        id="contract-upload"
+                                        className="hidden"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        onChange={handleFileUpload}
+                                    />
+                                    <div
+                                        onClick={() => document.getElementById('contract-upload')?.click()}
+                                        className={cn(
+                                            "border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center space-y-4 hover:border-indigo-400 transition-all cursor-pointer",
+                                            uploading && "opacity-50 pointer-events-none"
+                                        )}
                                     >
-                                        {show.status === "ASSINADO" ? <CheckCircle className="mr-2 h-4 w-4" /> : null}
-                                        {show.status === "ASSINADO" ? "Contrato Validado" : "Marcar como Assinado"}
-                                    </Button>
+                                        <div className="bg-indigo-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
+                                            {uploading ? <Loader2 className="h-6 w-6 text-indigo-600 animate-spin" /> : <Upload className="h-6 w-6 text-indigo-600" />}
+                                        </div>
+                                        <p className="text-xs font-bold text-slate-600 leading-tight">
+                                            {uploading ? "Enviando arquivo..." : "Arraste o arquivo aqui ou clique para selecionar"}
+                                        </p>
+                                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">PDF, JPG (Máx 10MB)</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Validação Ética</p>
+                                    <div className="rounded-2xl bg-amber-50 border border-amber-100 p-6 space-y-4">
+                                        <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                                            Ao marcar como assinado, o sistema desbloqueia os fluxos logísticos e financeiros.
+                                        </p>
+                                        <Button
+                                            onClick={() => handleStatusChange("ASSINADO")}
+                                            disabled={show.status === "ASSINADO"}
+                                            className="w-full rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest"
+                                        >
+                                            {show.status === "ASSINADO" ? <CheckCircle className="mr-2 h-4 w-4" /> : null}
+                                            {show.status === "ASSINADO" ? "Contrato Validado" : "Marcar como Assinado"}
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -468,6 +480,73 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                     />
                 </TabsContent>
             </Tabs>
-        </div >
+        </div>
+    );
+}
+
+/**
+ * Componente Auxiliar para listar templates dinâmicos de Show
+ */
+function DynamicTemplatesList({ showId }: { showId: string }) {
+    const { api } = useApi();
+    const [templates, setTemplates] = useState<DocumentTemplate[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
+
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                const response = await api.get('/client/documents/templates?entity_type=SHOW');
+                setTemplates(response.data);
+            } catch (error) {
+                console.error("Erro ao carregar templates de show:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTemplates();
+    }, [api]);
+
+    if (loading) return <div className="text-xs text-slate-400 animate-pulse">Buscando templates disponíveis...</div>;
+
+    if (templates.length === 0) return (
+        <div className="bg-slate-50 border-2 border-dotted border-slate-200 p-8 rounded-3xl text-center">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhum template dinâmico encontrado para shows.</p>
+        </div>
+    );
+
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {templates.map((tpl) => (
+                <Card key={tpl.id} className="p-5 rounded-2xl border-slate-100 shadow-none hover:border-indigo-200 hover:bg-slate-50/50 transition-all group">
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-start justify-between">
+                            <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <FileText size={18} />
+                            </div>
+                            <Badge variant="outline" className="text-[8px] font-black uppercase border-indigo-100 text-indigo-500 rounded-lg">Template SaaS</Badge>
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="text-sm font-black italic uppercase text-slate-800 leading-tight">{tpl.name}</h4>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Baseado no Objeto Show</p>
+                        </div>
+                        <Button
+                            onClick={() => setSelectedTemplate(tpl)}
+                            size="sm"
+                            className="w-full rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-colors"
+                        >
+                            Gerar PDF
+                        </Button>
+                    </div>
+                </Card>
+            ))}
+
+            <GenerateDocumentModal
+                isOpen={!!selectedTemplate}
+                onClose={() => setSelectedTemplate(null)}
+                template={selectedTemplate}
+                entityId={showId}
+            />
+        </div>
     );
 }

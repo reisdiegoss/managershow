@@ -24,6 +24,7 @@ from app.routers.client.dre import router as dre_router
 from app.routers.client.artists import router as artists_router
 from app.routers.client.contractors import router as contractors_router
 from app.routers.client.venues import router as venues_router
+from app.routers.client.documents import router as documents_router
 
 router = APIRouter(prefix="/api/v1/client", tags=["Client"])
 
@@ -36,3 +37,4 @@ router.include_router(dre_router)
 router.include_router(artists_router)
 router.include_router(contractors_router)
 router.include_router(venues_router)
+router.include_router(documents_router)

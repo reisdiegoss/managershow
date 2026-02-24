@@ -33,6 +33,7 @@ from app.models.city_base_cost import CityBaseCost
 from app.models.show_checkin import ShowCheckin
 from app.models.lead import Lead, LeadStatus
 from app.models.ticket import Ticket, TicketStatus, TicketPriority, TicketReply
+from app.models.document_template import DocumentTemplate, DocumentEntityType
 
 __all__ = [
     "Base",
@@ -66,4 +67,6 @@ __all__ = [
     "TicketStatus",
     "TicketPriority",
     "TicketReply",
+    "DocumentTemplate",
+    "DocumentEntityType",
 ]
