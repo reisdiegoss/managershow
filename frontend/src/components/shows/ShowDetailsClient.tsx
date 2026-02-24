@@ -31,6 +31,7 @@ import { AddLogisticsCostModal } from "./AddLogisticsCostModal";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { Receipt } from "lucide-react";
+import { DaySheetTab } from "./DaySheetTab";
 
 interface ShowDetailsClientProps {
     showId: string;
@@ -182,6 +183,7 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                         <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Visão Geral</TabsTrigger>
                         <TabsTrigger value="contract" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Contratos</TabsTrigger>
                         <TabsTrigger value="logistics" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Logística</TabsTrigger>
+                        <TabsTrigger value="roteiro" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Roteiro</TabsTrigger>
                         <TabsTrigger value="finance" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Financeiro</TabsTrigger>
                     </TabsList>
                 </div>
@@ -351,6 +353,15 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                     )}
                 </TabsContent>
 
+                <TabsContent value="roteiro" className="pt-6">
+                    <DaySheetTab
+                        showId={showId}
+                        artistName={show.artist_id}
+                        date={show.date_show}
+                        city={show.location_city}
+                    />
+                </TabsContent>
+
                 <TabsContent value="finance" className="pt-6">
                     <div className="rounded-3xl bg-white border border-slate-100 p-8 shadow-sm">
                         <div className="flex items-center gap-3 text-slate-400">
@@ -361,6 +372,6 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                     </div>
                 </TabsContent>
             </Tabs>
-        </div>
+        </div >
     );
 }

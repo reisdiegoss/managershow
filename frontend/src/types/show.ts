@@ -26,3 +26,12 @@ export interface Show {
     created_at: string;
     updated_at: string;
 }
+
+export interface TimelineEvent {
+    id: string;
+    time: string; // ex: "14:30"
+    title: string; // ex: "Saída do Hotel"
+    description?: string;
+    icon: 'flight' | 'hotel' | 'van' | 'music' | 'check'; // Mapear para Lucide Icons
+    is_highlight?: boolean; // Para destacar o horário do SHOW
+}
