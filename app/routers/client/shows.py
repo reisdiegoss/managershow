@@ -214,11 +214,11 @@ async def download_daysheet_pdf(
         "venue_name": show.location_venue_name or (show.venue.name if show.venue else "N/A"),
         "city": show.location_city,
         "uf": show.location_uf,
-        "address": show.venue.address if show.venue else "N/A"
+        "address": show.venue.address if show.venue else "N/A",
+        "notes": show.notes
     }
 
-    html = PDFService.get_daysheet_template(show_data, team)
-    pdf_io = PDFService.generate_pdf(html)
+    pdf_io = PDFService.get_daysheet_pdf(show_data, team)
 
     return Response(
         content=pdf_io.getvalue(),

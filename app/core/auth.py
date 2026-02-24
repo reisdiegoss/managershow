@@ -29,32 +29,29 @@ from app.exceptions import InvalidTokenException, TenantSuspendedException
 from app.models.tenant import TenantStatus
 from app.models.user import User
 
-# Cache das chaves JWKS do Clerk (evita buscar a cada request)
-_jwks_cache: dict | None = None
+# Cache das chaves JWKS do Clerk
+import jwt as pyjwt # Usaremos PyJWT para o JWKClient que é mais robusto para Clerk
+from jwt import PyJWKClient
 
+class ClerkAuth:
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self.jwks_client = PyJWKClient(settings.clerk_jwks_url)
 
-async def _get_jwks(settings: Settings) -> dict:
-    """
-    Busca as chaves JWKS do Clerk para validação do JWT.
-
-    Faz cache em memória para evitar latência de rede a cada request.
-    Em produção, considere TTL de 1 hora.
-    """
-    global _jwks_cache
-    if _jwks_cache is not None:
-        return _jwks_cache
-
-    async with httpx.AsyncClient() as client:
-        response = await client.get(settings.clerk_jwks_url)
-        response.raise_for_status()
-        _jwks_cache = response.json()
-        return _jwks_cache
-
-
-def _is_dev_mode(settings: Settings) -> bool:
-    """Verifica se estamos em modo desenvolvimento (placeholder do Clerk)."""
-    return settings.clerk_secret_key.startswith("sk_test_PLACEHOLDER")
-
+    async def validate_token(self, token: str) -> dict:
+        """Valida o token RS256 usando as chaves públicas oficiais do Clerk."""
+        try:
+            signing_key = self.jwks_client.get_signing_key_from_jwt(token)
+            payload = pyjwt.decode(
+                token,
+                signing_key.key,
+                algorithms=["RS256"],
+                issuer=self.settings.clerk_issuer,
+                options={"verify_aud": False}
+            )
+            return payload
+        except Exception as e:
+            raise InvalidTokenException()
 
 async def get_current_user(
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -64,25 +61,14 @@ async def get_current_user(
 ) -> User:
     """
     Dependência principal de autenticação do FastAPI.
-
-    Uso nos endpoints:
-        async def meu_endpoint(
-            current_user: User = Depends(get_current_user)
-        ):
-
-    Em DESENVOLVIMENTO (Clerk com placeholder):
-        - Aceita header X-Dev-User-Id com o UUID do usuário mockado
-        - Permite testar no Swagger sem token real do Clerk
-
-    Em PRODUÇÃO:
-        - Exige header Authorization: Bearer <jwt_token>
-        - Valida JWT via JWKS do Clerk
-        - Busca User no banco pelo clerk_id extraído do token
     """
 
     # --- Modo Desenvolvimento: bypass com X-Dev-User-Id ---
-    if _is_dev_mode(settings) and x_dev_user_id:
-        return await _get_user_by_id(db, uuid.UUID(x_dev_user_id))
+    if settings.app_env == "development" and x_dev_user_id:
+        try:
+            return await _get_user_by_id(db, uuid.UUID(x_dev_user_id))
+        except ValueError:
+            raise InvalidTokenException()
 
     # --- Modo Produção: validação JWT do Clerk ---
     if not authorization or not authorization.startswith("Bearer "):
@@ -90,38 +76,11 @@ async def get_current_user(
 
     token = authorization.removeprefix("Bearer ").strip()
 
-    try:
-        # Buscar chaves JWKS do Clerk
-        jwks = await _get_jwks(settings)
+    auth_service = ClerkAuth(settings)
+    payload = await auth_service.validate_token(token)
 
-        # Extrair header do JWT para identificar a chave correta
-        unverified_header = jwt.get_unverified_header(token)
-        kid = unverified_header.get("kid")
-
-        # Encontrar a chave correspondente ao kid
-        rsa_key: dict = {}
-        for key in jwks.get("keys", []):
-            if key.get("kid") == kid:
-                rsa_key = key
-                break
-
-        if not rsa_key:
-            raise InvalidTokenException()
-
-        # Decodificar e validar o JWT
-        payload = jwt.decode(
-            token,
-            rsa_key,
-            algorithms=["RS256"],
-            issuer=settings.clerk_issuer,
-            options={"verify_aud": False},  # Clerk não usa audience padrão
-        )
-
-        clerk_id: str | None = payload.get("sub")
-        if not clerk_id:
-            raise InvalidTokenException()
-
-    except JWTError:
+    clerk_id: str | None = payload.get("sub")
+    if not clerk_id:
         raise InvalidTokenException()
 
     # Buscar usuário pelo clerk_id

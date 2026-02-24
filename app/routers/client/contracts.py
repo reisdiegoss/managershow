@@ -125,6 +125,7 @@ async def download_contract_pdf(
         raise ShowNotFoundException(show_id)
 
     show_data = {
+        "show_id": str(show.id),
         "artist_name": show.artist.name,
         "contractor_name": show.contractor.name if show.contractor else "N/A",
         "date": show.date_show.strftime("%d/%m/%Y"),
@@ -134,8 +135,7 @@ async def download_contract_pdf(
         "price": f"{show.base_price:,.2f}"
     }
 
-    html = PDFService.get_contract_template(show_data)
-    pdf_io = PDFService.generate_pdf(html)
+    pdf_io = PDFService.get_contract_pdf(show_data)
 
     return Response(
         content=pdf_io.getvalue(),

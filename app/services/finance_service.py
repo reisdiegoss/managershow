@@ -116,15 +116,16 @@ async def calculate_dre(
     a partir dos dados financeiros lançados nas Etapas 3 e 5.
     """
     # --- Receita ---
-    receita_bruta = Decimal(str(show.real_cache))
-    valor_nota = Decimal(str(show.base_price))
-
-    # --- Impostos sobre a Nota Fiscal ---
-    tax_pct = Decimal(str(show.tax_percentage))
-    impostos = valor_nota * (tax_pct / Decimal("100"))
+    receita_bruta = Decimal(str(show.real_cache))  # Valor REAL que fica na produtora
+    valor_nota = Decimal(str(show.base_price))      # Valor NOMINAL da nota fiscal
 
     # --- Repasse de Produção (Prefeitura — NUNCA é lucro) ---
     repasse_producao = Decimal(str(show.production_kickback))
+
+    # --- Impostos (REGRA DA BÍBLIA: Incidem sobre o REAL CACHE para Prefeituras) ---
+    # Nota: Em shows privados, real_cache costuma ser igual ao valor da nota.
+    tax_pct = Decimal(str(show.tax_percentage))
+    impostos = receita_bruta * (tax_pct / Decimal("100"))
 
     # --- Buscar todas as transações financeiras ---
     stmt = tenant_query(FinancialTransaction, tenant_id).where(
@@ -156,12 +157,13 @@ async def calculate_dre(
     comm_result = await db.execute(comm_stmt)
     commissions = comm_result.scalars().all()
 
-    # --- Comissões sobre BRUTO (intermediários) ---
+    # --- Comissões sobre BRUTO (Intermediários) ---
+    # REGRA DA BÍBLIA: Incidem sobre o REAL CACHE, nunca sobre o Kickback.
     comissoes_bruto = Decimal("0")
     comissoes_bruto_detalhes: list[CommissionDetail] = []
     for comm in commissions:
         if comm.commission_base == CommissionBase.GROSS:
-            valor_comissao = valor_nota * (Decimal(str(comm.percentage)) / Decimal("100"))
+            valor_comissao = receita_bruta * (Decimal(str(comm.percentage)) / Decimal("100"))
             comissoes_bruto += valor_comissao
             comissoes_bruto_detalhes.append(CommissionDetail(
                 beneficiary=comm.beneficiary_name,
@@ -261,8 +263,8 @@ async def simulate_viability(
             .where(
                 FinancialTransaction.tenant_id == tenant_id,
                 FinancialTransaction.category == category,
-                Show.city == city,
-                Show.uf == uf,
+                Show.location_city == city,
+                Show.location_uf == uf,
                 FinancialTransaction.created_at >= twelve_months_ago
             )
         )

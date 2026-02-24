@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+        .title {
+            font-size: 18pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .label {
+            font-weight: bold;
+            color: #000;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 10pt;
+            text-align: center;
+            color: #777;
+        }
+        .signatures {
+            margin-top: 100px;
+            width: 100%;
+        }
+        .signature-box {
+            width: 45%;
+            display: inline-block;
+            text-align: center;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">MINUTA DE CONTRATO ARTÍSTICO</div>
+        <div>Manager Show — Documento Oficial</div>
+    </div>
+
+    <div class="section">
+        <p><span class="label">ARTISTA:</span> {{ artist_name }}</p>
+        <p><span class="label">CONTRATANTE:</span> {{ contractor_name }}</p>
+        <p><span class="label">LOCAL:</span> {{ venue_name }}</p>
+        <p><span class="label">CIDADE/UF:</span> {{ city }} / {{ uf }}</p>
+        <p><span class="label">DATA DO EVENTO:</span> {{ date }}</p>
+        <p><span class="label">VALOR DO CACHÊ:</span> R$ {{ price }}</p>
+    </div>
+
+    <div class="section">
+        <p class="label">CLÁUSULA PRIMEIRA - DO OBJETO</p>
+        <p>O presente contrato tem como objeto a prestação de serviços artísticos do(a) contratado(a) no evento acima descrito, sob a responsabilidade técnica e logística das partes acordadas.</p>
+    </div>
+
+    <div class="section">
+        <p>Este documento é uma minuta gerada eletronicamente pelo sistema de gestão **Manager Show** e deve ser validada pelas partes interessadas.</p>
+    </div>
+
+    <div class="signatures">
+        <div class="signature-box" style="margin-right: 5%;">
+            Contratante
+        </div>
+        <div class="signature-box">
+            Empresário / Artista
+        </div>
+    </div>
+
+    <div class="footer">
+        Gerado em {{ generated_at }} | ID do Show: {{ show_id }}
+    </div>
+</body>
+</html>

@@ -133,10 +133,15 @@ async def add_extra_expense(
         from app.exceptions import ContractNotSignedException
         raise ContractNotSignedException()
 
-    # Processar Upload do Recibo via S3
+    # Processar Upload do Recibo via S3 (com Blindagem de Segurança)
     receipt_url = None
     if receipt_file:
+        from app.core.security import validate_upload, MAX_FILE_SIZE_RECIBO
         from app.services.s3_service import S3Service
+        
+        # Validar MIME e Tamanho
+        validate_upload(receipt_file, MAX_FILE_SIZE_RECIBO)
+        
         content = await receipt_file.read()
         receipt_url = await S3Service.upload_file(
             file_content=content,
