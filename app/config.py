@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     app_debug: bool = False
     app_title: str = "Manager Show API"
     app_version: str = "0.1.0"
+    cors_origins: str = "http://localhost:3000,http://localhost:5173"
 
     # --- Banco de Dados PostgreSQL (async via asyncpg) ---
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/managershow"
