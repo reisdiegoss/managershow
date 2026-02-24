@@ -9,11 +9,9 @@ Endpoints para:
 Suporta dados offline-sync do app mobile PWA.
 """
 
-import uuid
-from datetime import datetime, timezone
-from decimal import Decimal
-
-from fastapi import APIRouter, Depends
+import shutil
+from pathlib import Path
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
@@ -109,17 +107,19 @@ async def batch_checkin(
 @router.post("/extras", status_code=201)
 async def add_extra_expense(
     show_id: uuid.UUID,
-    data: ExtraExpense,
     db: DbSession,
+    description: str = Form(...),
+    amount: Decimal = Form(...),
+    category: TransactionCategory = Form(TransactionCategory.OTHER),
+    receipt_file: UploadFile = File(None),
     current_user: User = Depends(require_permissions("can_add_extra_expenses")),
 ) -> dict:
     """
-    Lança uma despesa extra não prevista (Etapa 5).
-
-    Despesas extras são contabilizadas no DRE como EXTRA_EXPENSE.
-    Suporta upload de imagem de recibo via receipt_url.
+    Lança uma despesa extra não prevista com UPLOAD de recibo (Etapa 5).
     """
     tenant_id = current_user.tenant_id
+    from app.config import get_settings
+    settings = get_settings()
 
     # Verificar show
     stmt = select(Show).where(Show.id == show_id, Show.tenant_id == tenant_id)
@@ -133,15 +133,26 @@ async def add_extra_expense(
         from app.exceptions import ContractNotSignedException
         raise ContractNotSignedException()
 
+    # Processar Upload do Recibo via S3
+    receipt_url = None
+    if receipt_file:
+        from app.services.s3_service import S3Service
+        content = await receipt_file.read()
+        receipt_url = await S3Service.upload_file(
+            file_content=content,
+            filename=receipt_file.filename,
+            content_type=receipt_file.content_type
+        )
+
     transaction = FinancialTransaction(
         tenant_id=tenant_id,
         show_id=show_id,
         type=TransactionType.EXTRA_EXPENSE,
-        category=data.category,
-        description=data.description,
+        category=category,
+        description=description,
         budgeted_amount=Decimal("0"),
-        realized_amount=data.amount,
-        receipt_url=data.receipt_url,
+        realized_amount=amount,
+        receipt_url=receipt_url,
     )
     db.add(transaction)
     await db.flush()
@@ -150,9 +161,10 @@ async def add_extra_expense(
     return {
         "id": str(transaction.id),
         "show_id": str(show_id),
-        "description": data.description,
-        "amount": str(data.amount),
-        "message": "Despesa extra registrada com sucesso.",
+        "description": description,
+        "amount": str(amount),
+        "receipt_url": receipt_url,
+        "message": "Despesa extra com recibo registrada com sucesso.",
     }
 
 

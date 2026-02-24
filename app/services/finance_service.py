@@ -241,30 +241,52 @@ async def simulate_viability(
     cache: Decimal,
 ) -> SimulationResult:
     """
-    Simula viabilidade financeira para uma cidade.
+    Simula viabilidade financeira para uma cidade (BI Real).
 
-    Busca AVG de custos de FLIGHT e HOTEL nos últimos 12 meses
-    e projeta um DRE provisório para retornar VIABLE ou RISKY.
+    Lógica:
+    1. Busca médias de custos reais em FinancialTransaction para shows passados na cidade.
+    2. Fallback para CityBaseCost (histórico manual/referência) se não houver transações.
+    3. Projeta DRE previsional.
     """
+    from app.models.financial_transaction import TransactionCategory
+    from app.models.show import Show
+
     twelve_months_ago = date.today() - timedelta(days=365)
 
-    # Custo médio de voo
-    flight_stmt = select(func.avg(CityBaseCost.cost_amount)).where(
-        CityBaseCost.tenant_id == tenant_id,
-        CityBaseCost.city == city,
-        CityBaseCost.category == "FLIGHT",
-        CityBaseCost.reference_date >= twelve_months_ago,
-    )
-    avg_flight = Decimal(str((await db.execute(flight_stmt)).scalar() or 0))
+    # --- 1. Buscar Médias Reais (FinancialTransaction) ---
+    async def get_real_avg(category: TransactionCategory) -> Decimal:
+        stmt = (
+            select(func.avg(FinancialTransaction.realized_amount))
+            .join(Show)
+            .where(
+                FinancialTransaction.tenant_id == tenant_id,
+                FinancialTransaction.category == category,
+                Show.city == city,
+                Show.uf == uf,
+                FinancialTransaction.created_at >= twelve_months_ago
+            )
+        )
+        return Decimal(str((await db.execute(stmt)).scalar() or 0))
 
-    # Custo médio de hotel
-    hotel_stmt = select(func.avg(CityBaseCost.cost_amount)).where(
-        CityBaseCost.tenant_id == tenant_id,
-        CityBaseCost.city == city,
-        CityBaseCost.category == "HOTEL",
-        CityBaseCost.reference_date >= twelve_months_ago,
-    )
-    avg_hotel = Decimal(str((await db.execute(hotel_stmt)).scalar() or 0))
+    real_flight = await get_real_avg(TransactionCategory.FLIGHT)
+    real_hotel = await get_real_avg(TransactionCategory.HOTEL)
+
+    # --- 2. Buscar Médias de Referência (CityBaseCost) ---
+    async def get_ref_avg(category: str) -> Decimal:
+        stmt = select(func.avg(CityBaseCost.cost_amount)).where(
+            CityBaseCost.tenant_id == tenant_id,
+            CityBaseCost.city == city,
+            CityBaseCost.category == category,
+            CityBaseCost.reference_date >= twelve_months_ago,
+        )
+        return Decimal(str((await db.execute(stmt)).scalar() or 0))
+
+    ref_flight = await get_ref_avg("FLIGHT")
+    ref_hotel = await get_ref_avg("HOTEL")
+
+    # --- 3. Ponderação: Real tem prioridade sobre Referência ---
+    avg_flight = real_flight if real_flight > 0 else ref_flight
+    avg_hotel = real_hotel if real_hotel > 0 else ref_hotel
 
     # Projetar DRE
     projected_total_cost = avg_flight + avg_hotel
@@ -274,7 +296,8 @@ async def simulate_viability(
     # VIABLE >= 20% de margem, RISKY < 20%
     status = "VIABLE" if margin_pct >= 20 else "RISKY"
 
-    details = None
+    source = "DADOS REAIS" if (real_flight > 0 or real_hotel > 0) else "REFERÊNCIA"
+    details = f"Simulação baseada em {source} para {city}/{uf}."
     if avg_flight == 0 and avg_hotel == 0:
         details = f"Sem histórico de custos para {city}/{uf}. Simulação baseada apenas no cachê."
 

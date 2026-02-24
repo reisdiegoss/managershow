@@ -85,6 +85,8 @@ async def list_shows(
     page_size: int = Query(20, ge=1, le=100),
     status: str | None = Query(None, description="Filtrar por status"),
     artist_id: uuid.UUID | None = Query(None, description="Filtrar por artista"),
+    month: int | None = Query(None, ge=1, le=12, description="Mês do show"),
+    year: int | None = Query(None, ge=2020, description="Ano do show"),
 ) -> dict:
     """Lista shows do tenant com paginação e filtros opcionais."""
     filters = [Show.tenant_id == tenant_id]
@@ -93,15 +95,25 @@ async def list_shows(
         filters.append(Show.status == status)
     if artist_id:
         filters.append(Show.artist_id == artist_id)
+    if month:
+        filters.append(func.extract("month", Show.date_show) == month)
+    if year:
+        filters.append(func.extract("year", Show.date_show) == year)
 
     # Total
     count_stmt = select(func.count()).select_from(Show).where(*filters)
     total = (await db.execute(count_stmt)).scalar() or 0
 
-    # Registros paginados
+    # Registros paginados com selectinload para evitar lazy load
+    from sqlalchemy.orm import selectinload
     offset = (page - 1) * page_size
     stmt = (
         select(Show)
+        .options(
+            selectinload(Show.artist),
+            selectinload(Show.contractor),
+            selectinload(Show.venue)
+        )
         .where(*filters)
         .offset(offset)
         .limit(page_size)
@@ -109,6 +121,7 @@ async def list_shows(
     )
     result = await db.execute(stmt)
     shows = result.scalars().all()
+
 
     total_pages = (total + page_size - 1) // page_size
 
@@ -162,6 +175,58 @@ async def get_show(
         raise ShowNotFoundException(show_id)
 
     return show
+
+
+@router.get("/{show_id}/pdf/daysheet", summary="Download Day Sheet PDF")
+async def download_daysheet_pdf(
+    show_id: uuid.UUID,
+    db: DbSession,
+    tenant_id: TenantId,
+):
+    """
+    Gera e retorna o PDF do Day Sheet (Roteiro) do show.
+    """
+    from fastapi import Response
+    from sqlalchemy.orm import selectinload
+    from app.services.pdf_service import PDFService
+    from app.models.show_checkin import ShowCheckin
+
+    stmt = (
+        select(Show)
+        .options(
+            selectinload(Show.artist),
+            selectinload(Show.venue),
+            selectinload(Show.checkin_users).selectinload(ShowCheckin.user)
+        )
+        .where(Show.id == show_id, Show.tenant_id == tenant_id)
+    )
+    result = await db.execute(stmt)
+    show = result.scalar_one_or_none()
+    
+    if not show:
+        raise ShowNotFoundException(show_id)
+
+    team = [checkin.user.name for checkin in show.checkin_users if checkin.user]
+    
+    show_data = {
+        "artist_name": show.artist.name,
+        "date": show.date_show.strftime("%d/%m/%Y"),
+        "venue_name": show.location_venue_name or (show.venue.name if show.venue else "N/A"),
+        "city": show.location_city,
+        "uf": show.location_uf,
+        "address": show.venue.address if show.venue else "N/A"
+    }
+
+    html = PDFService.get_daysheet_template(show_data, team)
+    pdf_io = PDFService.generate_pdf(html)
+
+    return Response(
+        content=pdf_io.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=DaySheet_{show.artist.name.replace(' ', '_')}_{show.date_show}.pdf"
+        }
+    )
 
 
 @router.patch("/{show_id}", response_model=ShowResponse)

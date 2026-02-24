@@ -98,3 +98,49 @@ async def validate_contract(
         "validated_at": show.contract_validated_at.isoformat(),
         "message": "Contrato validado! Etapa 3 (Pré-Produção/Logística) desbloqueada.",
     }
+
+
+@router.get("/pdf", summary="Download Contract PDF")
+async def download_contract_pdf(
+    show_id: uuid.UUID,
+    db: DbSession,
+    tenant_id: TenantId,
+):
+    """
+    Gera e retorna o PDF da minuta do contrato.
+    """
+    from fastapi import Response
+    from sqlalchemy.orm import selectinload
+    from app.services.pdf_service import PDFService
+
+    stmt = (
+        tenant_query(Show, tenant_id)
+        .options(selectinload(Show.artist), selectinload(Show.contractor), selectinload(Show.venue))
+        .where(Show.id == show_id)
+    )
+    result = await db.execute(stmt)
+    show = result.scalar_one_or_none()
+    
+    if not show:
+        raise ShowNotFoundException(show_id)
+
+    show_data = {
+        "artist_name": show.artist.name,
+        "contractor_name": show.contractor.name if show.contractor else "N/A",
+        "date": show.date_show.strftime("%d/%m/%Y"),
+        "venue_name": show.location_venue_name or (show.venue.name if show.venue else "N/A"),
+        "city": show.location_city,
+        "uf": show.location_uf,
+        "price": f"{show.base_price:,.2f}"
+    }
+
+    html = PDFService.get_contract_template(show_data)
+    pdf_io = PDFService.generate_pdf(html)
+
+    return Response(
+        content=pdf_io.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=Contrato_{show.artist.name.replace(' ', '_')}_{show.date_show}.pdf"
+        }
+    )

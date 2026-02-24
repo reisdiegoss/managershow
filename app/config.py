@@ -39,8 +39,13 @@ class Settings(BaseSettings):
     # --- Asaas (Webhook de pagamento SaaS) ---
     asaas_webhook_token: str = "PLACEHOLDER"
 
-    # --- CORS ---
-    cors_origins: str = "http://localhost:3000,http://localhost:5173"
+    # --- Storage (Uploads - S3/Minio) ---
+    s3_access_key: str = "GPjZNQo7LOptvjXePfUI"
+    s3_secret_key: str = "FMsPlo7UN9NqKkLbFksmxQm5g5i8eu3BRXfaouCy"
+    s3_bucket: str = "ManagerShow"
+    s3_endpoint: str = "https://s3.vimasistemas.com.br"
+    s3_region: str = "eu-south"
+    s3_use_ssl: bool = True
 
     @property
     def cors_origins_list(self) -> list[str]:
