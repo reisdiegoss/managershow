@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: "O sistema operacional definitivo para a carreira artística.",
 };
 
+import { Toaster } from "@/components/ui/toaster";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,6 +23,7 @@ export default function RootLayout({
       <html lang="pt-BR">
         <body className={`${inter.className} bg-slate-50 antialiased`}>
           {children}
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>

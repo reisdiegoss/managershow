@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/nextjs';
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
+import { ShowStatus } from '@/types/show';
 
 /**
  * Hook customizado para realizar chamadas à API do Manager Show.
@@ -26,5 +27,12 @@ export const useApi = () => {
         return config;
     });
 
-    return api;
+    /**
+     * Atualiza o status de um show específico.
+     */
+    const updateShowStatus = async (id: string, status: ShowStatus) => {
+        return api.patch(`/client/shows/${id}`, { status });
+    };
+
+    return { api, updateShowStatus };
 };
