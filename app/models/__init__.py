@@ -32,6 +32,9 @@ from app.models.logistics_timeline import LogisticsTimeline
 from app.models.city_base_cost import CityBaseCost
 from app.models.show_checkin import ShowCheckin
 from app.models.lead import Lead, LeadStatus
+from app.models.commercial_lead import CommercialLead, CommercialLeadStatus
+from app.models.seller import Seller
+from app.models.contractor_note import ContractorNote
 from app.models.ticket import Ticket, TicketStatus, TicketPriority, TicketReply
 from app.models.document_template import DocumentTemplate, DocumentEntityType
 
@@ -63,6 +66,10 @@ __all__ = [
     "ShowCheckin",
     "Lead",
     "LeadStatus",
+    "CommercialLead",
+    "CommercialLeadStatus",
+    "Seller",
+    "ContractorNote",
     "Ticket",
     "TicketStatus",
     "TicketPriority",

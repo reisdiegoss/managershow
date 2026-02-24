@@ -70,6 +70,11 @@ class Contractor(TenantMixin, TimestampMixin, Base):
         back_populates="contractor",
         lazy="raise",
     )
+    notes_list: Mapped[list["ContractorNote"]] = relationship(
+        back_populates="contractor",
+        cascade="all, delete-orphan",
+        lazy="select",
+    )
 
     def __repr__(self) -> str:
         return f"<Contractor(id={self.id}, name='{self.name}')>"

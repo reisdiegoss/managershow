@@ -26,6 +26,7 @@ import {
 const mainNavItems = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/" },
     { label: "Agenda Comercial", icon: CalendarDays, href: "/agenda" },
+    { label: "Pipeline CRM", icon: Building2, href: "/crm" },
     { label: "Logística", icon: Route, href: "/logistics" },
     { label: "Borderô Financeiro", icon: Wallet, href: "/finance" },
 ];

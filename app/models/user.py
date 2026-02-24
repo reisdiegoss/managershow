@@ -71,6 +71,11 @@ class User(TenantMixin, TimestampMixin, Base):
         back_populates="users",
         lazy="raise",
     )
+    seller_profile: Mapped["Seller | None"] = relationship(
+        back_populates="user",
+        uselist=False,
+        lazy="select",
+    )
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, name='{self.name}', clerk_id='{self.clerk_id}')>"

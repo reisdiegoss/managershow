@@ -20,7 +20,8 @@ import {
     Mail,
     Phone,
     MapPin,
-    Filter
+    Filter,
+    ChevronRight,
 } from "lucide-react";
 import {
     Dialog,
@@ -142,9 +143,13 @@ export default function ContractorsPage() {
                     </TableHeader>
                     <TableBody>
                         {contractors.map((c) => (
-                            <TableRow key={c.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <TableRow
+                                key={c.id}
+                                className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer group"
+                                onClick={() => window.location.href = `/contratantes/${c.id}`}
+                            >
                                 <TableCell className="py-6 flex justify-center">
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                         <Building2 className="h-6 w-6" />
                                     </div>
                                 </TableCell>
@@ -163,8 +168,8 @@ export default function ContractorsPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Button variant="ghost" size="icon" className="rounded-xl">
-                                        <MoreHorizontal className="h-5 w-5 text-slate-400" />
+                                    <Button variant="ghost" size="icon" className="rounded-xl group-hover:text-indigo-600">
+                                        <ChevronRight className="h-5 w-5" />
                                     </Button>
                                 </TableCell>
                             </TableRow>

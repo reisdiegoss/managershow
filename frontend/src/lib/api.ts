@@ -61,5 +61,35 @@ export const useApi = () => {
         });
     };
 
-    return { api, updateShowStatus, simulateShow, createShow, uploadContract };
+    /**
+     * CRM: Atualiza o status de um lead.
+     */
+    const updateLeadStatus = async (id: string, status: string) => {
+        return api.patch(`/client/leads/${id}`, { status });
+    };
+
+    /**
+     * CRM: Converte lead para show.
+     */
+    const convertLeadToShow = async (id: string) => {
+        return api.post(`/client/leads/${id}/convert`);
+    };
+
+    /**
+     * CRM: Adiciona nota ao contratante.
+     */
+    const addContractorNote = async (contractorId: string, content: string) => {
+        return api.post(`/client/contractors/${contractorId}/notes`, { content });
+    };
+
+    return {
+        api,
+        updateShowStatus,
+        simulateShow,
+        createShow,
+        uploadContract,
+        updateLeadStatus,
+        convertLeadToShow,
+        addContractorNote
+    };
 };
