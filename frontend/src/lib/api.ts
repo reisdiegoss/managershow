@@ -48,5 +48,18 @@ export const useApi = () => {
         return api.post('/client/shows', data);
     };
 
-    return { api, updateShowStatus, simulateShow, createShow };
+    /**
+     * Faz o upload de um contrato assinado.
+     */
+    const uploadContract = async (showId: string, file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post(`/client/contracts/${showId}/upload`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    };
+
+    return { api, updateShowStatus, simulateShow, createShow, uploadContract };
 };

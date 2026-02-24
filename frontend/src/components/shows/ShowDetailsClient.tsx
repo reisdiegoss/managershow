@@ -24,6 +24,13 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { FinancialTransaction } from "@/types/finance";
+import { LogisticsTable } from "./LogisticsTable";
+import { AddLogisticsCostModal } from "./AddLogisticsCostModal";
+import { Progress } from "@/components/ui/progress";
+import { Card } from "@/components/ui/card";
+import { Receipt } from "lucide-react";
 
 interface ShowDetailsClientProps {
     showId: string;
@@ -31,9 +38,11 @@ interface ShowDetailsClientProps {
 
 export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
     const [show, setShow] = useState<Show | null>(null);
+    const [transactions, setTransactions] = useState<FinancialTransaction[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingTransactions, setLoadingTransactions] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const { api, updateShowStatus } = useApi();
+    const { api, updateShowStatus, uploadContract } = useApi();
     const { toast } = useToast();
 
     const fetchShowDetails = async () => {
@@ -52,13 +61,25 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
         }
     };
 
+    const fetchTransactions = async () => {
+        try {
+            setLoadingTransactions(true);
+            const response = await api.get(`/client/shows/${showId}/transactions`);
+            setTransactions(response.data);
+        } catch (error) {
+            console.error("Erro ao carregar transações:", error);
+        } finally {
+            setLoadingTransactions(false);
+        }
+    };
+
     useEffect(() => {
         fetchShowDetails();
+        fetchTransactions();
     }, [showId]);
 
     const handleGeneratePDF = async () => {
         try {
-            // Endpoint fictício base conforme PRD: GET /.../contracts/pdf
             const response = await api.get(`/client/contracts/${showId}/pdf`, {
                 responseType: 'blob'
             });
@@ -78,9 +99,26 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
         try {
             await updateShowStatus(showId, newStatus);
             toast({ title: "Status Atualizado!", description: `Show marcado como ${newStatus}.` });
-            fetchShowDetails();
+            // Reatividade: fetch atualiza o estado local e libera a trava
+            await fetchShowDetails();
         } catch (error) {
             toast({ title: "Erro na atualização", variant: "destructive" });
+        }
+    };
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setUploading(true);
+            await uploadContract(showId, file);
+            toast({ title: "Upload Concluído!", description: "O contrato assinado foi anexado com sucesso." });
+            await fetchShowDetails();
+        } catch (error) {
+            toast({ title: "Erro no Upload", description: "Falha ao enviar o arquivo para a nuvem.", variant: "destructive" });
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -95,6 +133,12 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
     if (!show) return <div className="p-8 text-center text-slate-500">Show não encontrado.</div>;
 
     const isLocked = ["SONDAGEM", "PROPOSTA", "CONTRATO_PENDENTE"].includes(show.status);
+
+    // Cálculos Financeiros (Módulo de Logística)
+    const budgetLimit = show.base_price * 0.15; // 15% do cachê como teto logístico
+    const realizedTotal = transactions.reduce((acc, t) => acc + t.realized_amount, 0);
+    const balance = budgetLimit - realizedTotal;
+    const progressValue = Math.min((realizedTotal / budgetLimit) * 100, 100);
 
     return (
         <div className="flex flex-col space-y-6">
@@ -196,11 +240,26 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <div className="space-y-4">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Upload de Documento Assinado</p>
-                                <div className="border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center space-y-4 hover:border-indigo-400 transition-all cursor-pointer">
+                                <input
+                                    type="file"
+                                    id="contract-upload"
+                                    className="hidden"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    onChange={handleFileUpload}
+                                />
+                                <div
+                                    onClick={() => document.getElementById('contract-upload')?.click()}
+                                    className={cn(
+                                        "border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center space-y-4 hover:border-indigo-400 transition-all cursor-pointer",
+                                        uploading && "opacity-50 pointer-events-none"
+                                    )}
+                                >
                                     <div className="bg-indigo-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
-                                        <Upload className="h-6 w-6 text-indigo-600" />
+                                        {uploading ? <Loader2 className="h-6 w-6 text-indigo-600 animate-spin" /> : <Upload className="h-6 w-6 text-indigo-600" />}
                                     </div>
-                                    <p className="text-xs font-bold text-slate-600 leading-tight">Arraste o arquivo aqui ou clique para selecionar</p>
+                                    <p className="text-xs font-bold text-slate-600 leading-tight">
+                                        {uploading ? "Enviando arquivo..." : "Arraste o arquivo aqui ou clique para selecionar"}
+                                    </p>
                                     <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">PDF, JPG (Máx 10MB)</p>
                                 </div>
                             </div>
@@ -239,12 +298,55 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                             </div>
                         </Alert>
                     ) : (
-                        <div className="rounded-3xl bg-white border border-slate-100 p-8 shadow-sm space-y-4">
-                            <div className="flex items-center gap-3 text-emerald-600">
-                                <CheckCircle className="h-6 w-6" />
-                                <h3 className="text-sm font-black uppercase tracking-widest italic">Logística Desbloqueada</h3>
+                        <div className="space-y-8">
+                            {/* Dashboard de Orçamento */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <Card className="rounded-3xl border-slate-100 p-6 shadow-sm space-y-2">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Teto Orçamentário (15%)</p>
+                                    <p className="text-2xl font-black text-slate-900 italic">
+                                        R$ {budgetLimit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </p>
+                                </Card>
+                                <Card className="rounded-3xl border-slate-100 p-6 shadow-sm space-y-2">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Gasto Realizado</p>
+                                    <p className="text-2xl font-black text-indigo-600 italic">
+                                        R$ {realizedTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </p>
+                                </Card>
+                                <Card className={cn(
+                                    "rounded-3xl border-slate-100 p-6 shadow-sm space-y-2",
+                                    balance >= 0 ? "bg-emerald-50 border-emerald-100" : "bg-rose-50 border-rose-100"
+                                )}>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Saldo Disponível</p>
+                                    <p className={cn(
+                                        "text-2xl font-black italic",
+                                        balance >= 0 ? "text-emerald-700" : "text-rose-700"
+                                    )}>
+                                        R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </p>
+                                </Card>
                             </div>
-                            <p className="text-sm font-medium text-slate-500 italic">O pipeline de roteiros e deslocamentos está aberto. Módulo de lançamento em construção...</p>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex-1">
+                                        <div className="flex justify-between mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                            <span>Consumo do Budget</span>
+                                            <span className={cn(progressValue > 90 ? "text-rose-600" : "text-indigo-600")}>
+                                                {progressValue.toFixed(1)}%
+                                            </span>
+                                        </div>
+                                        <Progress value={progressValue} className="h-2" />
+                                    </div>
+                                    <AddLogisticsCostModal showId={showId} onSuccess={fetchTransactions} />
+                                </div>
+                            </div>
+
+                            {/* Tabela de Gestão */}
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Extrato de Despesas</h3>
+                                <LogisticsTable transactions={transactions} loading={loadingTransactions} />
+                            </div>
                         </div>
                     )}
                 </TabsContent>
