@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <ClerkProvider localization={ptBR}>
       <html lang="pt-BR">
-        <body class={`${inter.className} bg-slate-50 antialiased`}>
+        <body className={`${inter.className} bg-slate-50 antialiased`}>
           {children}
         </body>
       </html>
