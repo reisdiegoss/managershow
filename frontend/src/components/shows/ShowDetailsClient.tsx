@@ -34,6 +34,7 @@ import { Receipt } from "lucide-react";
 import { DaySheetTab } from "./DaySheetTab";
 import { TeamCheckin } from "./TeamCheckin";
 import { QuickExpenseForm } from "./QuickExpenseForm";
+import { FinanceTab } from "./FinanceTab";
 import { Truck } from "lucide-react";
 
 interface ShowDetailsClientProps {
@@ -388,13 +389,12 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                 </TabsContent>
 
                 <TabsContent value="finance" className="pt-6">
-                    <div className="rounded-3xl bg-white border border-slate-100 p-8 shadow-sm">
-                        <div className="flex items-center gap-3 text-slate-400">
-                            <AlertTriangle className="h-6 w-6" />
-                            <h3 className="text-sm font-black uppercase tracking-widest italic">Fluxo Financeiro</h3>
-                        </div>
-                        <p className="text-sm font-medium text-slate-500 italic mt-4">Aba bloqueada até a fase de Borderô. Aguarde o fechamento do contrato.</p>
-                    </div>
+                    <FinanceTab
+                        showId={showId}
+                        basePrice={show.base_price}
+                        transactions={transactions}
+                        loading={loadingTransactions}
+                    />
                 </TabsContent>
             </Tabs>
         </div >
