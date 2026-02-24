@@ -40,3 +40,26 @@ class ContractResponse(BaseModel):
     signed_by: str | None
     created_at: datetime
     updated_at: datetime
+
+
+class AvailabilityDeclarationRequest(BaseModel):
+    """Schema para solicitação de Declaração de Disponibilidade."""
+    requesting_company_name: str  # Ex: GOLDEN EVENTOS
+    requesting_company_cnpj: str  # Ex: 52.565.013/0001-01
+    show_date: str  # Ex: 08/05/2026
+    event_name: str  # Ex: 25ª Festa Nacional da Maçã
+
+
+class CommercialProposalRequest(BaseModel):
+    """Schema para solicitação de Carta Proposta Comercial (Desmembramento para Prefeitura)."""
+    cache_artistico: float
+    cache_producao: float
+    logistica_nacional: float
+    logistica_local_vans: float
+    hospedagens: float
+    diarias_alimentacao: float
+    rider_camarim: float
+    efeitos: float
+    nota_fiscal_impostos: float
+    total_amount: float
+    payment_conditions: str  # Ex: Parcela única até dia 20...

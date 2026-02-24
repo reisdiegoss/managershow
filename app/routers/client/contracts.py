@@ -17,9 +17,14 @@ from app.exceptions import ShowNotFoundException
 from app.models.contract import Contract, ContractStatus
 from app.models.show import Show, ShowStatus
 from app.models.user import User
-from app.schemas.contract import ContractCreate, ContractResponse
+from app.schemas.contract import (
+    AvailabilityDeclarationRequest,
+    CommercialProposalRequest,
+    ContractCreate,
+    ContractResponse,
+)
 
-router = APIRouter(prefix="/shows/{show_id}/contracts", tags=["Client — Contratos"])
+router = APIRouter(prefix="/shows/{show_id}/documents", tags=["Client — Documentos Licitatórios"])
 
 
 @router.post("/", summary="Create Contract", response_model=ContractResponse, status_code=201)
@@ -142,5 +147,93 @@ async def download_contract_pdf(
         media_type="application/pdf",
         headers={
             "Content-Disposition": f"attachment; filename=Contrato_{show.artist.name.replace(' ', '_')}_{show.date_show}.pdf"
+        }
+    )
+
+
+@router.post("/availability", summary="Generate Availability Declaration")
+async def generate_availability_document(
+    show_id: uuid.UUID,
+    payload: AvailabilityDeclarationRequest,
+    db: DbSession,
+    tenant_id: TenantId,
+):
+    """
+    Gera a Declaração de Disponibilidade para o show.
+    """
+    from fastapi import Response
+    from sqlalchemy.orm import selectinload
+    from app.services.pdf_service import PDFService
+
+    stmt = (
+        tenant_query(Show, tenant_id)
+        .options(selectinload(Show.artist))
+        .where(Show.id == show_id)
+    )
+    result = await db.execute(stmt)
+    show = result.scalar_one_or_none()
+
+    if not show:
+        raise ShowNotFoundException(show_id)
+
+    context = {
+        **payload.model_dump(),
+        "artist_name": show.artist.name,
+        "city": show.location_city,
+        "uf": show.location_uf,
+    }
+
+    pdf_io = PDFService.get_availability_pdf(context)
+
+    return Response(
+        content=pdf_io.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=Declaracao_Disponibilidade_{show.artist.name.replace(' ', '_')}.pdf"
+        }
+    )
+
+
+@router.post("/proposal", summary="Generate Commercial Proposal")
+async def generate_commercial_proposal(
+    show_id: uuid.UUID,
+    payload: CommercialProposalRequest,
+    db: DbSession,
+    tenant_id: TenantId,
+):
+    """
+    Gera a Carta Proposta Comercial estruturada para Prefeituras.
+    """
+    from fastapi import Response
+    from sqlalchemy.orm import selectinload
+    from app.services.pdf_service import PDFService
+
+    stmt = (
+        tenant_query(Show, tenant_id)
+        .options(selectinload(Show.artist))
+        .where(Show.id == show_id)
+    )
+    result = await db.execute(stmt)
+    show = result.scalar_one_or_none()
+
+    if not show:
+        raise ShowNotFoundException(show_id)
+
+    context = {
+        **payload.model_dump(),
+        "artist_name": show.artist.name,
+        "city": show.location_city,
+        "uf": show.location_uf,
+        # Dados da produtora podem ser pegos do tenant se necessário
+        "requesting_company_name": "GOLDEN EVENTOS", # Default ou vindo do tenant futuramente
+    }
+
+    pdf_io = PDFService.get_proposal_pdf(context)
+
+    return Response(
+        content=pdf_io.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=Carta_Proposta_{show.artist.name.replace(' ', '_')}.pdf"
         }
     )

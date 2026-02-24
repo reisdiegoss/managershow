@@ -51,3 +51,15 @@ class PDFService:
         context = {**show_data, "team": team}
         html = cls.render_template("daysheet_template.html", context)
         return cls.generate_pdf(html)
+
+    @classmethod
+    def get_availability_pdf(cls, context: dict) -> io.BytesIO:
+        """Gera o PDF da Declaração de Disponibilidade."""
+        html = cls.render_template("declaracao_disponibilidade.html", context)
+        return cls.generate_pdf(html)
+
+    @classmethod
+    def get_proposal_pdf(cls, context: dict) -> io.BytesIO:
+        """Gera o PDF da Carta Proposta Comercial."""
+        html = cls.render_template("carta_proposta.html", context)
+        return cls.generate_pdf(html)

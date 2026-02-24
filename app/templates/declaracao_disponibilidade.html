@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Declaração de Disponibilidade</title>
+    <style>
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #1e293b;
+            line-height: 1.6;
+            margin: 40px;
+            font-size: 12pt;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .content {
+            text-align: justify;
+            margin-bottom: 50px;
+        }
+
+        .footer {
+            margin-top: 100px;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid #1e293b;
+            width: 300px;
+            margin: 0 auto 10px;
+        }
+
+        .timestamp {
+            font-size: 9pt;
+            color: #64748b;
+            text-align: right;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>DECLARAÇÃO DE DISPONIBILIDADE</h1>
+    </div>
+
+    <div class="content">
+        <p>Declaramos para os devidos fins que, a pedido da empresa <strong>{{ requesting_company_name }}</strong>,
+            inscrita no CNPJ sob o nº <strong>{{ requesting_company_cnpj }}</strong>, informamos que o artista
+            <strong>{{ artist_name }}</strong> possui disponibilidade de data para apresentação em show musical no dia
+            <strong>{{ show_date }}</strong>, integrando a programação do evento <strong>{{ event_name }}</strong>, a
+            ser realizado na cidade de <strong>{{ city }} - {{ uf }}</strong>.</p>
+
+        <p>Esta declaração tem validade específica para o processo de contratação artística referente ao evento acima
+            mencionado, não gerando obrigações outras que não a confirmação da agenda para a referida data mediante a
+            formalização contratual.</p>
+    </div>
+
+    <div class="footer">
+        <div class="signature-line"></div>
+        <p><strong>{{ requesting_company_name }}</strong><br>Departamento de Agenciamento</p>
+    </div>
+
+    <div class="timestamp">
+        Gerado em: {{ generated_at }}
+    </div>
+</body>
+
+</html>

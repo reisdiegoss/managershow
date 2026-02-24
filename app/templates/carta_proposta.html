@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Carta Proposta Comercial</title>
+    <style>
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #1e293b;
+            line-height: 1.5;
+            margin: 40px;
+            font-size: 11pt;
+        }
+
+        .header {
+            text-align: right;
+            margin-bottom: 40px;
+        }
+
+        .addressing {
+            margin-bottom: 30px;
+        }
+
+        .title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14pt;
+            margin-bottom: 30px;
+            text-decoration: underline;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: bold;
+        }
+
+        .total-row {
+            background-color: #f1f5f9;
+            font-weight: bold;
+        }
+
+        .currency {
+            text-align: right;
+        }
+
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid #1e293b;
+            width: 300px;
+            margin: 0 auto 10px;
+        }
+
+        .timestamp {
+            font-size: 8pt;
+            color: #64748b;
+            text-align: right;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <p>{{ city }} - {{ uf }}, {{ generated_at.split(' ')[0] }}</p>
+    </div>
+
+    <div class="addressing">
+        <p>À<br>
+            <strong>Prefeitura Municipal de {{ city }} - {{ uf }}</strong><br>
+            Secretaria de Cultura / Departamento de Eventos
+        </p>
+    </div>
+
+    <div class="title">CARTA PROPOSTA COMERCIAL</div>
+
+    <p>Apresentamos nossa proposta comercial para a realização de show musical do artista <strong>{{ artist_name
+            }}</strong>, conforme desmembramento de custos abaixo:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Item / Descrição</th>
+                <th class="currency">Valor (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Cachê Artístico (Líquido do Artista)</td>
+                <td class="currency">{{ "{:,.2f}".format(cache_artistico) }}</td>
+            </tr>
+            <tr>
+                <td>Cachê de Produção e Agenciamento</td>
+                <td class="currency">{{ "{:,.2f}".format(cache_producao) }}</td>
+            </tr>
+            <tr>
+                <td>Logística Nacional (Aéreos/Translados)</td>
+                <td class="currency">{{ "{:,.2f}".format(logistica_nacional) }}</td>
+            </tr>
+            <tr>
+                <td>Logística Local (Vans e Transportes)</td>
+                <td class="currency">{{ "{:,.2f}".format(logistica_local_vans) }}</td>
+            </tr>
+            <tr>
+                <td>Hospedagens e Acomodações</td>
+                <td class="currency">{{ "{:,.2f}".format(hospedagens) }}</td>
+            </tr>
+            <tr>
+                <td>Diárias de Alimentação (Equipe e Artista)</td>
+                <td class="currency">{{ "{:,.2f}".format(diarias_alimentacao) }}</td>
+            </tr>
+            <tr>
+                <td>Rider de Camarim e Infraestrutura Artística</td>
+                <td class="currency">{{ "{:,.2f}".format(rider_camarim) }}</td>
+            </tr>
+            <tr>
+                <td>Efeitos Especiais e Cenografia</td>
+                <td class="currency">{{ "{:,.2f}".format(efeitos) }}</td>
+            </tr>
+            <tr>
+                <td>Encargos Tributários e Nota Fiscal</td>
+                <td class="currency">{{ "{:,.2f}".format(nota_fiscal_impostos) }}</td>
+            </tr>
+            <tr class="total-row">
+                <td>VALOR TOTAL DA PROPOSTA</td>
+                <td class="currency">R$ {{ "{:,.2f}".format(total_amount) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><strong>Condições de Pagamento:</strong> {{ payment_conditions }}</p>
+
+    <div class="footer">
+        <p>Atenciosamente,</p>
+        <div class="signature-line"></div>
+        <p><strong>{{ requesting_company_name }}</strong></p>
+    </div>
+
+    <div class="timestamp">
+        Documento gerado eletronicamente pelo sistema ManagerShow
+    </div>
+</body>
+
+</html>
