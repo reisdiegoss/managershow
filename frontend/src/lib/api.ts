@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/nextjs';
 import axios, { InternalAxiosRequestConfig } from 'axios';
-import { ShowStatus } from '@/types/show';
+import { Show, ShowStatus } from '@/types/show';
 
 /**
  * Hook customizado para realizar chamadas à API do Manager Show.
@@ -34,5 +34,19 @@ export const useApi = () => {
         return api.patch(`/client/shows/${id}`, { status });
     };
 
-    return { api, updateShowStatus };
+    /**
+     * Simula a viabilidade financeira de um show.
+     */
+    const simulateShow = async (data: { location_city: string; location_uf: string; base_price: number; client_type: string }) => {
+        return api.post('/client/shows/simulate', data);
+    };
+
+    /**
+     * Cria um novo show.
+     */
+    const createShow = async (data: Partial<Show>) => {
+        return api.post('/client/shows', data);
+    };
+
+    return { api, updateShowStatus, simulateShow, createShow };
 };

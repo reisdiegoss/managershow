@@ -37,12 +37,13 @@ const COLUMNS: { label: string; status: ShowStatus }[] = [
  * Componente KanbanBoard - O coração da Agenda.
  * Gerencia o fetch de dados, agrupamento e exibição das raias.
  */
-export function KanbanBoard() {
+export function KanbanBoard({ currentDate }: { currentDate: Date }) {
     const { api, updateShowStatus } = useApi();
     const { toast } = useToast();
     const [shows, setShows] = useState<Show[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // Configuração dos sensores para desktop e touch (mobile)
     const sensors = useSensors(
@@ -54,25 +55,34 @@ export function KanbanBoard() {
     );
 
     /**
-     * Busca os shows do backend ao montar o componente.
+     * Função para forçar o recarregamento dos dados
+     */
+    const reload = () => setRefreshKey(prev => prev + 1);
+
+    /**
+     * Busca os shows do backend ao montar o componente ou mudar data/refresh.
      */
     useEffect(() => {
         async function fetchShows() {
             try {
                 setLoading(true);
-                const response = await api.get("/client/shows");
+                const month = currentDate.getMonth() + 1;
+                const year = currentDate.getFullYear();
+
+                // Endpoint do nosso backend FastAPI com filtros temporais
+                const response = await api.get(`/client/shows?month=${month}&year=${year}`);
                 setShows(response.data);
                 setError(null);
             } catch (err: any) {
                 console.error("Erro ao carregar shows:", err);
-                setError("Não foi possível carregar a agenda. Tente novamente mais tarde.");
+                setError("Não foi possível carregar a agenda para este período.");
             } finally {
                 setLoading(false);
             }
         }
 
         fetchShows();
-    }, [api]);
+    }, [api, currentDate, refreshKey]);
 
     /**
      * Agrupa os shows por status.
