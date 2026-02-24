@@ -32,6 +32,9 @@ import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { Receipt } from "lucide-react";
 import { DaySheetTab } from "./DaySheetTab";
+import { TeamCheckin } from "./TeamCheckin";
+import { QuickExpenseForm } from "./QuickExpenseForm";
+import { Truck } from "lucide-react";
 
 interface ShowDetailsClientProps {
     showId: string;
@@ -184,6 +187,7 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                         <TabsTrigger value="contract" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Contratos</TabsTrigger>
                         <TabsTrigger value="logistics" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Logística</TabsTrigger>
                         <TabsTrigger value="roteiro" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Roteiro</TabsTrigger>
+                        <TabsTrigger value="operacao" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Operação</TabsTrigger>
                         <TabsTrigger value="finance" className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[11px] font-black uppercase tracking-widest py-3 px-1">Financeiro</TabsTrigger>
                     </TabsList>
                 </div>
@@ -360,6 +364,27 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                         date={show.date_show}
                         city={show.location_city}
                     />
+                </TabsContent>
+
+                <TabsContent value="operacao" className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2">
+                            <TeamCheckin showId={showId} />
+                        </div>
+                        <div className="space-y-6">
+                            <Card className="rounded-[2.5rem] bg-indigo-900 p-8 text-white shadow-xl relative overflow-hidden">
+                                <div className="relative z-10 space-y-4">
+                                    <Truck className="h-8 w-8 text-indigo-400" />
+                                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Modo Estrada</h3>
+                                    <p className="text-xs font-medium text-indigo-200 leading-relaxed">
+                                        Registe a presença da equipa para cálculo de diárias e anexe recibos de custos imprevistos instantaneamente.
+                                    </p>
+                                    <QuickExpenseForm showId={showId} onSuccess={fetchTransactions} />
+                                </div>
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/20 blur-3xl rounded-full" />
+                            </Card>
+                        </div>
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="finance" className="pt-6">

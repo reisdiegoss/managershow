@@ -35,3 +35,10 @@ export interface TimelineEvent {
     icon: 'flight' | 'hotel' | 'van' | 'music' | 'check'; // Mapear para Lucide Icons
     is_highlight?: boolean; // Para destacar o horário do SHOW
 }
+
+export interface TeamMember {
+    id: string;
+    name: string;
+    role: string; // Ex: 'Músico', 'Técnico', 'Roadie'
+    isPresent: boolean; // Estado do check-in
+}
