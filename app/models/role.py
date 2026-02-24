@@ -107,9 +107,11 @@ class Role(TenantMixin, TimestampMixin, Base):
     # --- Relacionamentos ---
     tenant: Mapped["Tenant"] = relationship(  # noqa: F821
         back_populates="roles",
+        lazy="raise",
     )
     users: Mapped[list["User"]] = relationship(  # noqa: F821
         back_populates="role",
+        lazy="raise",
     )
 
     def has_permission(self, permission: str) -> bool:

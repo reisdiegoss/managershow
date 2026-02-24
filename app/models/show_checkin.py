@@ -55,6 +55,7 @@ class ShowCheckin(TenantMixin, Base):
     # --- Relacionamentos ---
     show: Mapped["Show"] = relationship(  # noqa: F821
         back_populates="checkin_users",
+        lazy="raise",
     )
 
     def __repr__(self) -> str:

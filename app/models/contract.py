@@ -76,6 +76,7 @@ class Contract(TenantMixin, TimestampMixin, Base):
     # --- Relacionamentos ---
     show: Mapped["Show"] = relationship(  # noqa: F821
         back_populates="contracts",
+        lazy="raise",
     )
 
     def __repr__(self) -> str:

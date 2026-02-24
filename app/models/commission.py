@@ -74,6 +74,7 @@ class Commission(TenantMixin, TimestampMixin, Base):
     # --- Relacionamentos ---
     show: Mapped["Show"] = relationship(  # noqa: F821
         back_populates="commissions",
+        lazy="raise",
     )
 
     def __repr__(self) -> str:

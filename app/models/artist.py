@@ -64,9 +64,11 @@ class Artist(TenantMixin, TimestampMixin, Base):
     # --- Relacionamentos ---
     tenant: Mapped["Tenant"] = relationship(  # noqa: F821
         back_populates="artists",
+        lazy="raise",
     )
     shows: Mapped[list["Show"]] = relationship(  # noqa: F821
         back_populates="artist",
+        lazy="raise",
     )
 
     def __repr__(self) -> str:

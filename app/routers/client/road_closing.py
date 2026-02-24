@@ -128,6 +128,11 @@ async def add_extra_expense(
     if not show:
         raise ShowNotFoundException(show_id)
 
+    # TRAVA MESTRA — hierarquia de status
+    if not show.can_add_costs():
+        from app.exceptions import ContractNotSignedException
+        raise ContractNotSignedException()
+
     transaction = FinancialTransaction(
         tenant_id=tenant_id,
         show_id=show_id,
@@ -170,6 +175,14 @@ async def close_road(
     show = result.scalar_one_or_none()
     if not show:
         raise ShowNotFoundException(show_id)
+
+    # Verifica se o show está em EM_ESTRADA para permitir fechamento
+    if not show.can_close_road():
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=400,
+            detail=f"Não é possível fechar a estrada. O show está em status {show.status.value}."
+        )
 
     show.road_closed = True
     show.road_closed_at = datetime.now(timezone.utc)

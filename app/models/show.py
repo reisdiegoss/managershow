@@ -223,36 +223,66 @@ class Show(TenantMixin, TimestampMixin, Base):
         comment="Observações gerais sobre o show",
     )
 
-    # --- Relacionamentos ---
+    # --- Relacionamentos (lazy="raise" previne MissingGreenlet async) ---
     artist: Mapped["Artist"] = relationship(  # noqa: F821
         back_populates="shows",
+        lazy="raise",
     )
     contractor: Mapped["Contractor | None"] = relationship(  # noqa: F821
         back_populates="shows",
+        lazy="raise",
     )
     venue: Mapped["Venue | None"] = relationship(  # noqa: F821
         back_populates="shows",
+        lazy="raise",
     )
     financial_transactions: Mapped[list["FinancialTransaction"]] = relationship(  # noqa: F821
         back_populates="show",
         cascade="all, delete-orphan",
+        lazy="raise",
     )
     commissions: Mapped[list["Commission"]] = relationship(  # noqa: F821
         back_populates="show",
         cascade="all, delete-orphan",
+        lazy="raise",
     )
     contracts: Mapped[list["Contract"]] = relationship(  # noqa: F821
         back_populates="show",
         cascade="all, delete-orphan",
+        lazy="raise",
     )
     logistics_timeline: Mapped[list["LogisticsTimeline"]] = relationship(  # noqa: F821
         back_populates="show",
         cascade="all, delete-orphan",
+        lazy="raise",
     )
     checkin_users: Mapped[list["ShowCheckin"]] = relationship(  # noqa: F821
         back_populates="show",
         cascade="all, delete-orphan",
+        lazy="raise",
     )
+
+    # --- Constantes de Hierarquia de Status ---
+    BLOCKED_FOR_COSTS = {
+        ShowStatus.SONDAGEM,
+        ShowStatus.PROPOSTA,
+        ShowStatus.CONTRATO_PENDENTE,
+    }
+
+    def can_add_costs(self) -> bool:
+        """
+        TRAVA MESTRA (Regra 02): Verifica se o show pode receber lançamentos.
+
+        Retorna True se o show já passou da fase de contrato.
+        Usa hierarquia de status Enum — não apenas o boolean contract_validated.
+        Assim, shows em PRE_PRODUCAO, EM_ESTRADA ou CONCLUIDO continuam
+        permitindo lançamentos (ex: despesas extras na Etapa 5).
+        """
+        return self.status not in self.BLOCKED_FOR_COSTS
+
+    def can_close_road(self) -> bool:
+        """Verifica se o show pode ser fechado (road closing)."""
+        return self.status in {ShowStatus.EM_ESTRADA}
 
     def __repr__(self) -> str:
         return (

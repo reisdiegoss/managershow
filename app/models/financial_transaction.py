@@ -142,6 +142,7 @@ class FinancialTransaction(TenantMixin, TimestampMixin, Base):
     # --- Relacionamentos ---
     show: Mapped["Show"] = relationship(  # noqa: F821
         back_populates="financial_transactions",
+        lazy="raise",
     )
 
     @property

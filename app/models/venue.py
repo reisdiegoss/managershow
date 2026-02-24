@@ -68,6 +68,7 @@ class Venue(TenantMixin, TimestampMixin, Base):
     # --- Relacionamentos ---
     shows: Mapped[list["Show"]] = relationship(  # noqa: F821
         back_populates="venue",
+        lazy="raise",
     )
 
     def __repr__(self) -> str:

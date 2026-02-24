@@ -65,9 +65,11 @@ class User(TenantMixin, TimestampMixin, Base):
     # --- Relacionamentos ---
     tenant: Mapped["Tenant"] = relationship(  # noqa: F821
         back_populates="users",
+        lazy="raise",
     )
     role: Mapped["Role | None"] = relationship(  # noqa: F821
         back_populates="users",
+        lazy="raise",
     )
 
     def __repr__(self) -> str:

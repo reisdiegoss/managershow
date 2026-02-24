@@ -47,7 +47,9 @@ async def add_logistics_cost(
     Lança um custo de produção ou logística no show.
 
     TRAVA MESTRA (Regra 02 da Bíblia):
-    Bloqueia lançamento se contract_validated == False.
+    Bloqueia lançamento se o show está antes da fase de contrato.
+    Usa hierarquia de status: SONDAGEM/PROPOSTA/CONTRATO_PENDENTE = bloqueado.
+    Shows em ASSINADO, PRE_PRODUCAO, EM_ESTRADA ou CONCLUIDO podem receber custos.
 
     BODY validado pelo schema FinancialTransactionCreate (Pydantic V2 com Decimal).
     """
@@ -61,8 +63,8 @@ async def add_logistics_cost(
     if not show:
         raise ShowNotFoundException(show_id)
 
-    # TRAVA MESTRA — contrato deve estar validado
-    if not show.contract_validated:
+    # TRAVA MESTRA — hierarquia de status (não apenas boolean)
+    if not show.can_add_costs():
         raise ContractNotSignedException()
 
     # Criar transação financeira via schema validado

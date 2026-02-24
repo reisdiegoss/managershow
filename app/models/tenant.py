@@ -81,14 +81,17 @@ class Tenant(TimestampMixin, Base):
     users: Mapped[list["User"]] = relationship(  # noqa: F821
         back_populates="tenant",
         cascade="all, delete-orphan",
+        lazy="raise",
     )
     roles: Mapped[list["Role"]] = relationship(  # noqa: F821
         back_populates="tenant",
         cascade="all, delete-orphan",
+        lazy="raise",
     )
     artists: Mapped[list["Artist"]] = relationship(  # noqa: F821
         back_populates="tenant",
         cascade="all, delete-orphan",
+        lazy="raise",
     )
 
     def __repr__(self) -> str:
