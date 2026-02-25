@@ -228,6 +228,50 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
                 </div>
             </Card>
 
+            {/* Checklist Ativo de Cobrança */}
+            <Card className="rounded-[2.5rem] border-white/5 p-8 shadow-2xl glass-card">
+                <div className="flex items-center gap-2 mb-6">
+                    <CheckCircle className="h-5 w-5 text-indigo-600" />
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-100 italic">Checklist de Cobrança & Contrato</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {[
+                        {
+                            label: "Contrato Assinado",
+                            ok: transactions.some(t => t.category === 'REVENUE' && t.description.toLowerCase().includes('sinal')) || dre.receitaBruta > 0,
+                            desc: "Status contratual ativo"
+                        },
+                        {
+                            label: "Sinal Pago",
+                            ok: transactions.some(t => t.category === 'REVENUE'),
+                            desc: "Entrada financeira confirmada"
+                        },
+                        {
+                            label: "Budget Logístico",
+                            ok: dre.totalDespesas < (dre.receitaBruta * 0.25),
+                            desc: "Margem de segurança mantida"
+                        },
+                        {
+                            label: "DRE Consolidado",
+                            ok: dre.lucroLiquido > 0,
+                            desc: "Operação com saldo positivo"
+                        }
+                    ].map((item, idx) => (
+                        <div key={idx} className={cn(
+                            "p-4 rounded-3xl border transition-all",
+                            item.ok ? "bg-emerald-500/10 border-emerald-500/30" : "bg-slate-500/5 border-white/5 opacity-60"
+                        )}>
+                            <div className="flex items-center gap-2 mb-1">
+                                {item.ok ? <CheckCircle className="h-4 w-4 text-emerald-500" /> : <AlertTriangle className="h-4 w-4 text-slate-500" />}
+                                <span className={cn("text-[10px] font-black uppercase tracking-tight", item.ok ? "text-emerald-500" : "text-slate-400")}>{item.label}</span>
+                            </div>
+                            <p className="text-[9px] font-medium text-slate-500">{item.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </Card>
+
             {/* Split de Comissões */}
             <Card className="rounded-[2.5rem] border-slate-100 p-8 shadow-sm bg-slate-50/50">
                 <div className="flex items-center gap-2 mb-6">

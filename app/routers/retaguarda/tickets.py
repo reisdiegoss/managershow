@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import func, select
 
 from app.core.dependencies import DbSession
+from app.core.auth import get_current_super_admin
 from app.models.ticket import Ticket, TicketReply, TicketStatus
 from app.schemas.ticket import (
     TicketCreate,
@@ -21,7 +22,11 @@ from app.schemas.ticket import (
 )
 from app.schemas.common import PaginatedResponse
 
-router = APIRouter(prefix="/tickets", tags=["Retaguarda — Tickets"])
+router = APIRouter(
+    prefix="/tickets", 
+    tags=["Retaguarda — Tickets"],
+    dependencies=[Depends(get_current_super_admin)]
+)
 
 
 @router.get("/", summary="List Tickets", response_model=PaginatedResponse[TicketResponse])
@@ -30,16 +35,25 @@ async def list_tickets(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     status: TicketStatus | None = Query(None, description="Filtrar por status"),
+    q: str | None = Query(None, description="Busca por assunto ou conteúdo"),
 ) -> dict:
     """Lista todos os tickets de suporte."""
     count_stmt = select(func.count()).select_from(Ticket)
     if status:
         count_stmt = count_stmt.where(Ticket.status == status)
+    if q:
+        count_stmt = count_stmt.where(
+            (Ticket.subject.ilike(f"%{q}%")) | (Ticket.description.ilike(f"%{q}%"))
+        )
     total = (await db.execute(count_stmt)).scalar() or 0
 
     stmt = select(Ticket).order_by(Ticket.created_at.desc())
     if status:
         stmt = stmt.where(Ticket.status == status)
+    if q:
+        stmt = stmt.where(
+            (Ticket.subject.ilike(f"%{q}%")) | (Ticket.description.ilike(f"%{q}%"))
+        )
     stmt = stmt.offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(stmt)
     tickets = result.scalars().all()

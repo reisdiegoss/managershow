@@ -10,16 +10,21 @@ CRUD de escritórios/agências. Gerencia:
 
 import uuid
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from sqlalchemy import func, select
 
 from app.core.dependencies import DbSession
+from app.core.auth import get_current_super_admin
 from app.exceptions import TenantNotFoundException
 from app.models.tenant import Tenant
 from app.schemas.common import PaginatedResponse
 from app.schemas.tenant import TenantCreate, TenantResponse, TenantUpdate
 
-router = APIRouter(prefix="/tenants", tags=["Retaguarda — Tenants"])
+router = APIRouter(
+    prefix="/tenants", 
+    tags=["Retaguarda — Tenants"],
+    dependencies=[Depends(get_current_super_admin)]
+)
 
 
 @router.post("/", response_model=TenantResponse, status_code=201)

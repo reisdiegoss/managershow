@@ -87,6 +87,26 @@ async def get_current_user(
     return await _get_user_by_clerk_id(db, clerk_id)
 
 
+async def get_current_super_admin(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    """
+    Dependência para rotas de Retaguarda.
+    Verifica se o usuário pertence à Vima Sistemas ou tem role de Super Admin.
+    """
+    is_vima_email = current_user.email and current_user.email.endswith("@vimasistemas.com.br")
+    # Role 'ADMIN' em um contexto global ou flag específica
+    is_super_admin = current_user.role and current_user.role.name == "Super Admin Global"
+
+    if not (is_vima_email or is_super_admin):
+        raise HTTPException(
+            status_code=403,
+            detail="Acesso restrito à equipe de retaguarda do Manager Show.",
+        )
+
+    return current_user
+
+
 async def _get_user_by_clerk_id(db: AsyncSession, clerk_id: str) -> User:
     """Busca o User no banco pelo clerk_id do Clerk."""
     stmt = (

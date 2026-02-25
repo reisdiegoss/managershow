@@ -36,7 +36,8 @@ interface QuickExpenseFormProps {
 export function QuickExpenseForm({ showId, onSuccess }: QuickExpenseFormProps) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [file, setFile] = useState<File | null>(null);
+    const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+    const [showCamera, setShowCamera] = useState(false);
     const { api } = useApi();
     const { toast } = useToast();
 
@@ -56,13 +57,12 @@ export function QuickExpenseForm({ showId, onSuccess }: QuickExpenseFormProps) {
             formData.append('realized_amount', values.amount);
             formData.append('category', 'OTHER'); // Categoria padrão para custos in-loco
             formData.append('type', 'EXPENSE');
-            if (file) {
-                formData.append('receipt', file);
+
+            if (receiptUrl) {
+                formData.append('receipt_url', receiptUrl);
             }
 
-            await api.post(`/client/shows/${showId}/transactions`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            await api.post(`/client/shows/${showId}/transactions`, formData);
 
             toast({
                 title: "Despesa Registrada!",
@@ -72,7 +72,7 @@ export function QuickExpenseForm({ showId, onSuccess }: QuickExpenseFormProps) {
 
             setOpen(false);
             form.reset();
-            setFile(null);
+            setReceiptUrl(null);
             if (onSuccess) onSuccess();
         } catch (error) {
             toast({
@@ -107,35 +107,51 @@ export function QuickExpenseForm({ showId, onSuccess }: QuickExpenseFormProps) {
 
                 <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-6 bg-white">
                     <div className="space-y-4">
-                        {/* Captura de Recibo */}
+                        {/* Nova Captura de Recibo (Fase 28) */}
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Foto do Recibo / Comprovante</Label>
-                            <div
-                                onClick={() => document.getElementById('receipt-upload')?.click()}
-                                className={cn(
-                                    "border-2 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center transition-all cursor-pointer",
-                                    file ? "border-emerald-400 bg-emerald-50" : "border-slate-100 hover:border-indigo-400"
-                                )}
-                            >
-                                <input
-                                    type="file"
-                                    id="receipt-upload"
-                                    className="hidden"
-                                    accept="image/*,application/pdf"
-                                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                Recibo (Câmera Ativa)
+                            </Label>
+
+                            {showCamera ? (
+                                <ReceiptCapture
+                                    onSuccess={(url) => {
+                                        setReceiptUrl(url);
+                                        setShowCamera(false);
+                                    }}
+                                    onCancel={() => setShowCamera(false)}
                                 />
-                                {file ? (
-                                    <>
-                                        <Receipt className="h-8 w-8 text-emerald-600 mb-2" />
-                                        <p className="text-xs font-bold text-emerald-700 truncate max-w-full px-4">{file.name}</p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Camera className="h-8 w-8 text-slate-300 mb-2" />
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tirar Foto ou Galeria</p>
-                                    </>
-                                )}
-                            </div>
+                            ) : receiptUrl ? (
+                                <div className="relative border-2 border-emerald-400 bg-emerald-50 rounded-3xl p-4 flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                                        <Check className="text-emerald-600 w-6 h-6" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-[10px] font-black uppercase text-emerald-800">Recibo Capturado</p>
+                                        <p className="text-[8px] text-emerald-600 truncate">{receiptUrl}</p>
+                                    </div>
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="text-rose-500 hover:text-rose-700"
+                                        onClick={() => setReceiptUrl(null)}
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full h-32 border-dashed border-2 rounded-3xl flex flex-col gap-2 hover:bg-slate-50 hover:border-slate-300 transition-all"
+                                    onClick={() => setShowCamera(true)}
+                                >
+                                    <Camera className="h-8 w-8 text-slate-400" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                        Abrir Câmera de Estrada
+                                    </span>
+                                </Button>
+                            )}
                         </div>
 
                         <div className="space-y-2">

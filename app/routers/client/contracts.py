@@ -80,6 +80,7 @@ async def validate_contract(
     TRAVA MESTRA — Valida o contrato e libera a Etapa 3.
 
     Seta contract_validated = True, destravando lançamento de despesas.
+    O status do show progride para ASSINADO.
     """
     tenant_id = current_user.tenant_id
 
@@ -89,16 +90,32 @@ async def validate_contract(
     if not show:
         raise ShowNotFoundException(show_id)
 
+    # 1. Auditoria e Flags
     show.contract_validated = True
     show.contract_validated_at = datetime.now(timezone.utc)
     show.contract_validated_by = current_user.id
-    show.status = ShowStatus.ASSINADO
+    
+    # 2. Máquina de Estados
+    # REGRA: O show só progride se estiver em fases anteriores à assinatura.
+    if show.status in (ShowStatus.SONDAGEM, ShowStatus.PROPOSTA, ShowStatus.CONTRATO_PENDENTE):
+        show.status = ShowStatus.ASSINADO
+
+    # 3. Atualizar contratos vinculados (se houver algum assinado recentemente)
+    contract_stmt = tenant_query(Contract, tenant_id).where(
+        Contract.show_id == show_id,
+        Contract.status == ContractStatus.SENT
+    )
+    contract_result = await db.execute(contract_stmt)
+    contracts = contract_result.scalars().all()
+    for contract in contracts:
+        contract.status = ContractStatus.SIGNED
 
     await db.flush()
 
     return {
         "show_id": str(show_id),
         "contract_validated": True,
+        "new_status": show.status.value,
         "validated_by": current_user.name,
         "validated_at": show.contract_validated_at.isoformat(),
         "message": "Contrato validado! Etapa 3 (Pré-Produção/Logística) desbloqueada.",

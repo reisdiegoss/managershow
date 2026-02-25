@@ -7,15 +7,20 @@ Funil de vendas: NOVO → CONTATADO → QUALIFICADO → PROPOSTA → CONVERTIDO 
 
 import uuid
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy import func, select
 
 from app.core.dependencies import DbSession
+from app.core.auth import get_current_super_admin
 from app.models.lead import Lead, LeadStatus
 from app.schemas.lead import LeadCreate, LeadResponse, LeadUpdate
 from app.schemas.common import PaginatedResponse
 
-router = APIRouter(prefix="/crm", tags=["Retaguarda — CRM"])
+router = APIRouter(
+    prefix="/crm", 
+    tags=["Retaguarda — CRM"],
+    dependencies=[Depends(get_current_super_admin)]
+)
 
 
 @router.get("/leads", summary="List Leads", response_model=PaginatedResponse[LeadResponse])

@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     s3_region: str = "eu-south"
     s3_use_ssl: bool = True
 
+    # --- APIs Externas (Fase 27) ---
+    google_maps_api_key: str = ""
+    openweather_api_key: str = ""
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Retorna as origens CORS como lista de strings."""

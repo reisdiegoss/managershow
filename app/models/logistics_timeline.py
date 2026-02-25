@@ -10,7 +10,7 @@ notificações push para a equipe.
 
 import uuid
 
-from sqlalchemy import ForeignKey, String, Text, Time
+from sqlalchemy import ForeignKey, String, Text, Time, Numeric
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -62,6 +62,33 @@ class LogisticsTimeline(TenantMixin, TimestampMixin, Base):
         default=0,
         nullable=False,
         comment="Ordem de exibição na timeline",
+    )
+
+    # --- Integrações Inteligentes (Fase 27) ---
+    weather_temp: Mapped[float | None] = mapped_column(
+        Numeric(5, 2),
+        nullable=True,
+        comment="Temperatura prevista para o local/horário",
+    )
+    weather_condition: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="Condição climática (ex: Céu Limpo, Chuva Moderada)",
+    )
+    route_distance: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment="Distância estimada (Google Maps)",
+    )
+    route_duration: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment="Tempo estimado de percurso (Google Maps)",
+    )
+    location_place_id: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Google Place ID para precisão de localização",
     )
 
     # --- Relacionamentos ---

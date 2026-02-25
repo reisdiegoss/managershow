@@ -44,10 +44,11 @@ async def asaas_webhook(
 
     event_type = body.get("event")
     payment = body.get("payment", {})
-    # O external_reference do Asaas deve conter o tenant_id
+    payment_id = payment.get("id")
     tenant_id = payment.get("externalReference")
 
     if not tenant_id:
+        print(f"[Asaas Webhook] Evento {event_type} ignorado: externalReference (tenant_id) ausente.")
         return {"status": "ignored", "reason": "externalReference ausente"}
 
     # Buscar tenant no banco
@@ -56,16 +57,32 @@ async def asaas_webhook(
     tenant = result.scalar_one_or_none()
 
     if not tenant:
+        print(f"[Asaas Webhook] Erro: Tenant {tenant_id} não encontrado para o evento {event_type}.")
         return {"status": "ignored", "reason": "tenant não encontrado"}
+
+    print(f"[Asaas Webhook] Processando {event_type} para Tenant: {tenant.name} ({tenant_id}) | Pagamento: {payment_id}")
 
     # Processar evento de pagamento
     if event_type in ("PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"):
+        # Renovação (Idempotência básica: só renova se não estiver já renovado para este ciclo próximo)
+        # Em um cenário real, salvaríamos o 'payment_id' em uma tabela 'Payments' para verificar se já foi processado.
         tenant.status = TenantStatus.ACTIVE
-        tenant.subscription_expires_at = datetime.now(timezone.utc) + timedelta(days=30)
+        
+        # Se já expirou, renova a partir de agora. Se não, estende a partir da data de expiração atual.
+        base_date = tenant.subscription_expires_at if tenant.subscription_expires_at and tenant.subscription_expires_at > datetime.now(timezone.utc) else datetime.now(timezone.utc)
+        tenant.subscription_expires_at = base_date + timedelta(days=30)
+        print(f"[Asaas Webhook] Assinatura renovada até {tenant.subscription_expires_at}")
 
     elif event_type == "PAYMENT_OVERDUE":
         tenant.status = TenantStatus.SUSPENDED
+        print(f"[Asaas Webhook] Tenant SUSPENSO por falta de pagamento.")
+
+    elif event_type in ("PAYMENT_REFUNDED", "PAYMENT_DELETED", "PAYMENT_CHARGEBACK_REQUESTED"):
+        tenant.status = TenantStatus.SUSPENDED
+        # Remove a data de expiração para forçar novo pagamento
+        tenant.subscription_expires_at = datetime.now(timezone.utc)
+        print(f"[Asaas Webhook] Pagamento ESTORNADO ou DELETADO. Tenant suspenso.")
 
     await db.flush()
 
-    return {"status": "processed", "event": event_type, "tenant_id": str(tenant_id)}
+    return {"status": "processed", "event": event_type, "tenant_id": str(tenant_id), "payment_id": payment_id}

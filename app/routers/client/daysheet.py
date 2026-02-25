@@ -65,7 +65,7 @@ async def add_timeline_item(
     db: DbSession,
     current_user: CurrentUser,
 ) -> LogisticsTimeline:
-    """Adiciona um item à timeline do Day Sheet (validado por schema Pydantic)."""
+    """Adiciona um item à timeline do Day Sheet com inteligência climática."""
     tenant_id = current_user.tenant_id
 
     stmt = tenant_query(Show, tenant_id).where(Show.id == show_id)
@@ -74,15 +74,117 @@ async def add_timeline_item(
     if not show:
         raise ShowNotFoundException(show_id)
 
+    # Inicializar campos inteligentes
+    weather_data = {"temp": None, "condition": None}
+    
+    # 1. Busca Clima (Fase 27) - Se houver cidade definida
+    if show.location_city:
+        from app.services.logistics_service import LogisticsService
+        weather_data = await LogisticsService.get_weather_forecast(
+            show.location_city, 
+            show.date_show.isoformat()
+        )
+
     item = LogisticsTimeline(
         tenant_id=tenant_id,
         show_id=show_id,
+        weather_temp=weather_data["temp"],
+        weather_condition=weather_data["condition"],
         **payload.model_dump(),
     )
     db.add(item)
     await db.flush()
     await db.refresh(item)
     return item
+
+
+@router.put("/items/{item_id}", response_model=TimelineItemResponse)
+async def update_timeline_item(
+    show_id: uuid.UUID,
+    item_id: uuid.UUID,
+    payload: TimelineItemCreate,
+    db: DbSession,
+    current_user: CurrentUser,
+) -> LogisticsTimeline:
+    """Atualiza um item da timeline."""
+    tenant_id = current_user.tenant_id
+    
+    stmt = tenant_query(LogisticsTimeline, tenant_id).where(
+        LogisticsTimeline.id == item_id,
+        LogisticsTimeline.show_id == show_id
+    )
+    result = await db.execute(stmt)
+    item = result.scalar_one_or_none()
+    
+    if not item:
+        raise HTTPException(status_code=404, detail="Item não encontrado.")
+    
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(item, key, value)
+        
+    await db.flush()
+    await db.refresh(item)
+    return item
+
+
+@router.post("/smart-sync", summary="Smart Logistics Sync", status_code=200)
+async def smart_sync_logistics(
+    show_id: uuid.UUID,
+    db: DbSession,
+    current_user: CurrentUser,
+) -> dict:
+    """
+    Sincronização Inteligente (Fase 27):
+    - Calcula rotas (Google Maps) entre itens sequenciais.
+    - Atualiza clima (OpenWeather) para todos os itens.
+    """
+    tenant_id = current_user.tenant_id
+    from app.services.logistics_service import LogisticsService
+
+    # 1. Busca Show e Timeline
+    stmt_show = tenant_query(Show, tenant_id).where(Show.id == show_id)
+    show_res = await db.execute(stmt_show)
+    show = show_res.scalar_one_or_none()
+    if not show:
+        raise ShowNotFoundException(show_id)
+
+    stmt_tl = (
+        tenant_query(LogisticsTimeline, tenant_id)
+        .where(LogisticsTimeline.show_id == show_id)
+        .order_by(LogisticsTimeline.order, LogisticsTimeline.time)
+    )
+    tl_res = await db.execute(stmt_tl)
+    items = tl_res.scalars().all()
+
+    # 2. Processamento em Lote
+    updated_count = 0
+    for i in range(len(items)):
+        item = items[i]
+        
+        # A) Atualiza Clima
+        weather = await LogisticsService.get_weather_forecast(show.location_city, show.date_show.isoformat())
+        item.weather_temp = weather["temp"]
+        item.weather_condition = weather["condition"]
+
+        # B) Calcula Rota (se houver um próximo item e for deslocamento)
+        if i < len(items) - 1:
+            next_item = items[i+1]
+            # Se o item atual ou o próximo for do tipo transporte/logística
+            if item.icon_type in ("flight", "van", "bus") or "Voo" in item.title or "Viagem" in item.title:
+                route = await LogisticsService.get_route_details(item.title, next_item.title)
+                item.route_distance = route["distance"]
+                item.route_duration = route["duration"]
+        
+        updated_count += 1
+
+    await db.flush()
+
+    return {
+        "show_id": str(show_id),
+        "items_updated": updated_count,
+        "message": "Inteligência logística aplicada com sucesso!"
+    }
 
 
 @router.post("/publish", summary="Publish Day Sheet & Notify Crew", status_code=200)

@@ -29,6 +29,8 @@ from app.routers.client.venues import router as venues_router
 from app.routers.client.documents import router as documents_router
 from app.routers.client.leads import router as leads_router
 from app.routers.client.sellers import router as sellers_router
+from app.routers.client.sync import router as sync_router
+from app.routers.client.receipts import router as receipts_router
 
 router = APIRouter(prefix="/api/v1/client", tags=["Client"])
 
@@ -46,3 +48,5 @@ router.include_router(venues_router)
 router.include_router(documents_router)
 router.include_router(leads_router)
 router.include_router(sellers_router)
+router.include_router(sync_router)
+router.include_router(receipts_router)

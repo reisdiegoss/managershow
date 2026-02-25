@@ -5,12 +5,34 @@ from jinja2 import Environment, FileSystemLoader, Template
 from xhtml2pdf import pisa
 from fastapi import HTTPException
 
+from decimal import Decimal
+
 # Configuração do Jinja2
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
+
+def format_currency(value):
+    """Filtro Jinja2: Formata Decimal/Float para BRL (R$ 0.000,00)"""
+    if value is None:
+        return "R$ 0,00"
+    try:
+        return f"R$ {Decimal(str(value)):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except:
+        return str(value)
+
+def format_date_br(value):
+    """Filtro Jinja2: Formata date/datetime para DD/MM/AAAA"""
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    return value.strftime("%d/%m/%Y")
+
 template_env = Environment(
     loader=FileSystemLoader(TEMPLATE_DIR),
     autoescape=True
 )
+template_env.filters["currency"] = format_currency
+template_env.filters["date_br"] = format_date_br
 
 class PDFService:
     @staticmethod

@@ -32,12 +32,16 @@ import { Calendar } from "@/components/ui/calendar";
 import { useApi } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 import { ProfitLight } from "./ProfitLight";
-import { Plus, Calculator, Sparkles, Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Plus, Calculator, Sparkles, Calendar as CalendarIcon, Loader2, UserPlus, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NewContractorModal } from "./NewContractorModal";
+import { NewVenueModal } from "./NewVenueModal";
 
 // Schema de validação estrito baseado no Backend e no Módulo 1 do PRD
 const showSchema = z.object({
     artist_id: z.string().min(1, "Selecione o artista"),
+    contractor_id: z.string().optional(),
+    venue_id: z.string().optional(),
     date_start: z.date({
         required_error: "Data de início é obrigatória",
     }),
@@ -56,11 +60,17 @@ type ShowFormValues = z.infer<typeof showSchema>;
  */
 export function NewShowDialog({ onShowCreated }: { onShowCreated?: () => void }) {
     const [open, setOpen] = useState(false);
+    const [openContractorModal, setOpenContractorModal] = useState(false);
+    const [openVenueModal, setOpenVenueModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [simulating, setSimulating] = useState(false);
     const [simulationResult, setSimulationResult] = useState<{ score: number; message: string } | null>(null);
 
-    const { simulateShow, createShow } = useApi();
+    const [artists, setArtists] = useState<any[]>([]);
+    const [contractors, setContractors] = useState<any[]>([]);
+    const [venues, setVenues] = useState<any[]>([]);
+
+    const { api, simulateShow, createShow } = useApi();
     const { toast } = useToast();
 
     const form = useForm<ShowFormValues>({
@@ -72,6 +82,25 @@ export function NewShowDialog({ onShowCreated }: { onShowCreated?: () => void })
             negotiation_type: "CACHE_FIXO",
         },
     });
+
+    const loadData = async () => {
+        try {
+            const [artRes, contRes, venRes] = await Promise.all([
+                api.get("/client/artists/"),
+                api.get("/client/contractors/"),
+                api.get("/client/venues/"),
+            ]);
+            setArtists(artRes.data);
+            setContractors(contRes.data);
+            setVenues(venRes.data);
+        } catch (error) {
+            console.error("Erro ao carregar dados do formulário:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (open) loadData();
+    }, [open]);
 
     // Observa mudanças para simulação automática
     const watchCity = form.watch("location_city");
@@ -134,164 +163,246 @@ export function NewShowDialog({ onShowCreated }: { onShowCreated?: () => void })
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button className="rounded-2xl bg-indigo-600 px-6 font-black italic uppercase tracking-tighter text-white shadow-lg transition-all hover:bg-indigo-700 hover:scale-105 active:scale-95">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Nova Ação
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-white/10 glass-card shadow-2xl overflow-hidden p-0 text-slate-100">
+        <>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                    <Button className="rounded-2xl bg-indigo-600 px-6 font-black italic uppercase tracking-tighter text-white shadow-lg transition-all hover:bg-indigo-700 hover:scale-105 active:scale-95">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Nova Ação
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-white/10 glass-card shadow-2xl overflow-hidden p-0 text-slate-100">
 
-                <div className="bg-indigo-600 p-8 text-white relative">
-                    <Sparkles className="absolute top-4 right-4 h-12 w-12 text-white/10" />
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">
-                            Agenda <span className="text-indigo-200">Comercial</span>
-                        </DialogTitle>
-                    </DialogHeader>
-                    <p className="text-xs font-bold text-indigo-100/80 italic mt-2 uppercase tracking-widest">
-                        Simulador de Viabilidade e Registro de Show
-                    </p>
-                </div>
-
-                <form onSubmit={form.handleSubmit((data) => onSubmit(data))} className="p-8 space-y-5">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Artista / Atração</Label>
-                            <Select onValueChange={(v) => form.setValue("artist_id", v)}>
-                                <SelectTrigger className="rounded-xl border-slate-200 h-11">
-                                    <SelectValue placeholder="Selecione o Artista" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="ARTIST_001">Artista Gold (Headliner)</SelectItem>
-                                    <SelectItem value="ARTIST_002">Artista Silver (Support)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Data do Show</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant={"outline"}
-                                        className={cn(
-                                            "w-full justify-start text-left font-normal rounded-xl border-slate-200 h-11",
-                                            !form.watch("date_start") && "text-muted-foreground"
-                                        )}
-                                    >
-                                        <CalendarIcon className="mr-2 h-4 w-4 text-indigo-500" />
-                                        {form.watch("date_start") ? format(form.watch("date_start"), "PPP", { locale: ptBR }) : <span>Escolha a data</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        mode="single"
-                                        selected={form.watch("date_start")}
-                                        onSelect={(date: Date | undefined) => date && form.setValue("date_start", date)}
-                                        initialFocus
-                                        locale={ptBR}
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                        </div>
+                    <div className="bg-indigo-600 p-8 text-white relative">
+                        <Sparkles className="absolute top-4 right-4 h-12 w-12 text-white/10" />
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">
+                                Agenda <span className="text-indigo-200">Comercial</span>
+                            </DialogTitle>
+                        </DialogHeader>
+                        <p className="text-xs font-bold text-indigo-100/80 italic mt-2 uppercase tracking-widest">
+                            Simulador de Viabilidade e Registro de Show
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="col-span-2 space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Cidade (Praça)</Label>
-                            <Input
-                                placeholder="Ex: Goiânia"
-                                {...form.register("location_city")}
-                                className="rounded-xl border-slate-200 h-11 focus:ring-indigo-500"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">UF</Label>
-                            <Input
-                                placeholder="GO"
-                                maxLength={2}
-                                {...form.register("location_uf")}
-                                className="rounded-xl border-slate-200 h-11 focus:ring-indigo-500 uppercase"
-                            />
-                        </div>
-                    </div>
+                    <form onSubmit={form.handleSubmit((data) => onSubmit(data))} className="p-8 space-y-5">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Artista / Atração</Label>
+                                <Select onValueChange={(v) => form.setValue("artist_id", v)}>
+                                    <SelectTrigger className="rounded-xl border-slate-200 h-11">
+                                        <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {artists.map(a => (
+                                            <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Data do Show</Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full justify-start text-left font-normal rounded-xl border-slate-200 h-11",
+                                                !form.watch("date_start") && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4 text-indigo-500" />
+                                            {form.watch("date_start") ? format(form.watch("date_start"), "PPP", { locale: ptBR }) : <span>Escolha a data</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={form.watch("date_start")}
+                                            onSelect={(date: Date | undefined) => date && form.setValue("date_start", date)}
+                                            initialFocus
+                                            locale={ptBR}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Contratante</Label>
+                                    <button type="button" onClick={() => setOpenContractorModal(true)} className="text-[9px] font-black uppercase text-indigo-500 hover:underline flex items-center gap-1">
+                                        <UserPlus className="h-3 w-3" /> Novo
+                                    </button>
+                                </div>
+                                <Select
+                                    onValueChange={(v) => form.setValue("contractor_id", v)}
+                                    value={form.watch("contractor_id")}
+                                >
+                                    <SelectTrigger className="rounded-xl border-slate-200 h-11">
+                                        <SelectValue placeholder="Opcional" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {contractors.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Local (Venue)</Label>
+                                    <button type="button" onClick={() => setOpenVenueModal(true)} className="text-[9px] font-black uppercase text-indigo-500 hover:underline flex items-center gap-1">
+                                        <Landmark className="h-3 w-3" /> Novo
+                                    </button>
+                                </div>
+                                <Select
+                                    onValueChange={(v) => {
+                                        form.setValue("venue_id", v);
+                                        const venue = venues.find(ven => ven.id === v);
+                                        if (venue) {
+                                            form.setValue("location_city", venue.city);
+                                            form.setValue("location_uf", venue.state);
+                                        }
+                                    }}
+                                    value={form.watch("venue_id")}
+                                >
+                                    <SelectTrigger className="rounded-xl border-slate-200 h-11">
+                                        <SelectValue placeholder="Opcional" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {venues.map(v => (
+                                            <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="col-span-2 space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Cidade (Praça)</Label>
+                                <Input
+                                    placeholder="Ex: Goiânia"
+                                    {...form.register("location_city")}
+                                    className="rounded-xl border-slate-200 h-11 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">UF</Label>
+                                <Input
+                                    placeholder="GO"
+                                    maxLength={2}
+                                    {...form.register("location_uf")}
+                                    className="rounded-xl border-slate-200 h-11 focus:ring-indigo-500 uppercase"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Modelo de Negócio</Label>
+                                <Select
+                                    onValueChange={(v) => form.setValue("negotiation_type", v as any)}
+                                    defaultValue="CACHE_FIXO"
+                                >
+                                    <SelectTrigger className="rounded-xl border-slate-200 h-11">
+                                        <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="CACHE_FIXO">Cachê Fixo</SelectItem>
+                                        <SelectItem value="CACHE_DESPESAS">Cachê + Despesas</SelectItem>
+                                        <SelectItem value="COLOCADO_TOTAL">Colocado Total</SelectItem>
+                                        <SelectItem value="BILHETERIA">Bilheteria (Venda)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Tipo de Contrato</Label>
+                                <Select
+                                    onValueChange={(v) => form.setValue("client_type", v as any)}
+                                    defaultValue="PRIVATE"
+                                >
+                                    <SelectTrigger className="rounded-xl border-slate-200 h-11">
+                                        <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="PRIVATE">Venda Direta / Privado</SelectItem>
+                                        <SelectItem value="PUBLIC">Governo / Prefeitura</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Modelo de Negócio</Label>
-                            <Select
-                                onValueChange={(v) => form.setValue("negotiation_type", v as any)}
-                                defaultValue="CACHE_FIXO"
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-right block w-full">Cachê Base (BRL)</Label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">R$</span>
+                                <Input
+                                    type="number"
+                                    placeholder="0,00"
+                                    {...form.register("base_price")}
+                                    className="pl-12 rounded-xl border-slate-200 h-12 focus:ring-indigo-500 text-right font-black text-lg"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Semáforo de Viabilidade BI */}
+                        <ProfitLight
+                            loading={simulating}
+                            score={simulationResult?.score}
+                            message={simulationResult?.message}
+                        />
+
+                        <div className="pt-4 flex items-center gap-3">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                className="flex-1 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400"
+                                onClick={() => setOpen(false)}
                             >
-                                <SelectTrigger className="rounded-xl border-slate-200 h-11">
-                                    <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="CACHE_FIXO">Cachê Fixo</SelectItem>
-                                    <SelectItem value="CACHE_DESPESAS">Cachê + Despesas</SelectItem>
-                                    <SelectItem value="COLOCADO_TOTAL">Colocado Total</SelectItem>
-                                    <SelectItem value="BILHETERIA">Bilheteria (Venda)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Tipo de Contrato</Label>
-                            <Select
-                                onValueChange={(v) => form.setValue("client_type", v as any)}
-                                defaultValue="PRIVATE"
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="flex-[2] h-12 rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.1em] shadow-xl transition-all hover:bg-black active:scale-95"
                             >
-                                <SelectTrigger className="rounded-xl border-slate-200 h-11">
-                                    <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="PRIVATE">Venda Direta / Privado</SelectItem>
-                                    <SelectItem value="PUBLIC">Governo / Prefeitura</SelectItem>
-                                </SelectContent>
-                            </Select>
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Efetivar Negociação"}
+                            </Button>
                         </div>
-                    </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
-                    <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-right block w-full">Cachê Base (BRL)</Label>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">R$</span>
-                            <Input
-                                type="number"
-                                placeholder="0,00"
-                                {...form.register("base_price")}
-                                className="pl-12 rounded-xl border-slate-200 h-12 focus:ring-indigo-500 text-right font-black text-lg"
-                            />
-                        </div>
-                    </div>
+            <NewContractorModal
+                open={openContractorModal}
+                onOpenChange={setOpenContractorModal}
+                onSuccess={(id) => {
+                    loadData();
+                    form.setValue("contractor_id", id);
+                }}
+            />
 
-                    {/* Semáforo de Viabilidade BI */}
-                    <ProfitLight
-                        loading={simulating}
-                        score={simulationResult?.score}
-                        message={simulationResult?.message}
-                    />
-
-                    <div className="pt-4 flex items-center gap-3">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            className="flex-1 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400"
-                            onClick={() => setOpen(false)}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-[2] h-12 rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.1em] shadow-xl transition-all hover:bg-black active:scale-95"
-                        >
-                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Efetivar Negociação"}
-                        </Button>
-                    </div>
-                </form>
-            </DialogContent>
-        </Dialog>
+            <NewVenueModal
+                open={openVenueModal}
+                onOpenChange={setOpenVenueModal}
+                onSuccess={(id) => {
+                    loadData();
+                    form.setValue("venue_id", id);
+                    // Busca automática de cidade/UF após criar local
+                    api.get(`/client/venues/`).then(res => {
+                        const venue = res.data.find((v: any) => v.id === id);
+                        if (venue) {
+                            form.setValue("location_city", venue.city);
+                            form.setValue("location_uf", venue.state);
+                        }
+                    });
+                }}
+            />
+        </>
     );
 }

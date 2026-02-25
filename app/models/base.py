@@ -26,7 +26,14 @@ from sqlalchemy.orm import (
 
 class Base(DeclarativeBase):
     """Classe base declarativa para todos os models do SQLAlchemy 2.0."""
-    pass
+    
+    def to_dict(self) -> dict:
+        """Serializa o model para um dicionário (usado no motor de sincronização)."""
+        return {
+            c.name: getattr(self, c.name) 
+            for r in self.__class__.mro() if hasattr(r, "__table__") 
+            for c in r.__table__.columns
+        }
 
 
 class TimestampMixin:

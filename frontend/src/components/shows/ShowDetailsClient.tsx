@@ -36,10 +36,12 @@ import { TeamCheckin } from "./TeamCheckin";
 import PreShowCrew from "./PreShowCrew";
 import { QuickExpenseForm } from "./QuickExpenseForm";
 import { FinanceTab } from "./FinanceTab";
-import { Truck, Users } from "lucide-react";
+import { Truck, Users, RefreshCw } from "lucide-react";
 import { TeamMember, DiariaType, CacheType } from "@/types/show";
 import { GenerateDocumentModal } from "./GenerateDocumentModal";
 import { DocumentTemplate } from "@/types/document";
+import { sync } from "@/lib/db/syncService";
+import { CheckInList } from "./CheckInList";
 
 interface ShowDetailsClientProps {
     showId: string;
@@ -60,8 +62,31 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
     const [loading, setLoading] = useState(true);
     const [loadingTransactions, setLoadingTransactions] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [syncing, setSyncing] = useState(false);
     const { api, updateShowStatus, uploadContract } = useApi();
     const { toast } = useToast();
+
+    const handleSync = async () => {
+        try {
+            setSyncing(true);
+            await sync(api);
+            toast({
+                title: "Sincronizado!",
+                description: "Dados offline atualizados com o servidor.",
+                className: "bg-indigo-600 text-white border-0"
+            });
+            await fetchShowDetails();
+            await fetchTransactions();
+        } catch (error) {
+            toast({
+                title: "Erro na Sync",
+                description: "Verifique sua conexão ou tente novamente.",
+                variant: "destructive"
+            });
+        } finally {
+            setSyncing(false);
+        }
+    };
 
     /**
      * Geração de PDF do Contrato
@@ -230,6 +255,16 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                     </div>
 
                     <div className="flex flex-col items-end gap-3 text-right">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full text-[10px] font-black uppercase tracking-widest gap-2 bg-indigo-50/50 border-indigo-100 text-indigo-700 hover:bg-indigo-100"
+                            onClick={handleSync}
+                            disabled={syncing}
+                        >
+                            {syncing ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                            Sincronizar Estrada
+                        </Button>
                         <Badge className="rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-700 border-indigo-100">
                             {show.status}
                         </Badge>
@@ -459,12 +494,8 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                             />
                         </div>
                         <div className="space-y-8">
-                            {/* Fechamento: Check-in e Cachês */}
-                            <TeamCheckin
-                                showId={showId}
-                                teamMembers={teamMembers}
-                                onUpdateCache={(id, type) => handleUpdateMember(id, { cache_type: type })}
-                            />
+                            {/* Fechamento: Check-in Digital Reativo (WatermelonDB) */}
+                            <CheckInList showId={showId} />
 
                             <Card className="rounded-[2.5rem] bg-indigo-900 p-8 text-white shadow-xl relative overflow-hidden">
                                 <div className="relative z-10 space-y-4">

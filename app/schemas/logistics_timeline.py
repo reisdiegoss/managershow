@@ -38,5 +38,13 @@ class TimelineItemResponse(BaseModel):
     description: str | None
     icon_type: str | None
     order: int
+    
+    # Novos campos (Fase 27)
+    weather_temp: float | None = None
+    weather_condition: str | None = None
+    route_distance: str | None = None
+    route_duration: str | None = None
+    location_place_id: str | None = None
+
     created_at: dt.datetime
     updated_at: dt.datetime

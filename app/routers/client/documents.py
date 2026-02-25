@@ -125,6 +125,7 @@ async def generate_dynamic_document(
         raise HTTPException(status_code=404, detail="Template não encontrado.")
 
     context = {**payload.custom_variables}
+    from app.services.document_tag_service import DocumentTagService
 
     # 2. Busca a entidade principal com base no entity_type
     if template.entity_type == DocumentEntityType.SHOW:
@@ -148,6 +149,8 @@ async def generate_dynamic_document(
             if show.artist_id not in current_user.allowed_artist_ids:
                 raise HTTPException(status_code=404, detail="Show não encontrado.")
 
+        # Injeta tags automáticas + objeto original
+        context.update(DocumentTagService.get_show_tags(show))
         context["show"] = show
 
     elif template.entity_type == DocumentEntityType.ARTIST:
@@ -162,6 +165,7 @@ async def generate_dynamic_document(
             if artist.id not in current_user.allowed_artist_ids:
                 raise HTTPException(status_code=404, detail="Artista não encontrado.")
 
+        context.update(DocumentTagService.get_artist_tags(artist))
         context["artist"] = artist
 
     elif template.entity_type == DocumentEntityType.CONTRACTOR:
@@ -170,6 +174,8 @@ async def generate_dynamic_document(
         contractor = cnt_res.scalar_one_or_none()
         if not contractor:
             raise HTTPException(status_code=404, detail="Contratante não encontrado.")
+        
+        context.update(DocumentTagService.get_contractor_tags(contractor))
         context["contractor"] = contractor
 
     # 3. Renderiza e retorna o PDF
