@@ -48,6 +48,8 @@ async def create_show(
     forem informados mas os objetos aninhados estiverem presentes,
     o backend cria as entidades automaticamente.
     """
+    from app.services.budget_simulator_service import calculate_dynamic_budget_and_face_value
+
     show_data = data.model_dump(exclude={"contractor", "venue"})
     show_data["tenant_id"] = tenant_id
 
@@ -71,6 +73,14 @@ async def create_show(
         await db.flush()
         show_data["venue_id"] = venue.id
 
+    # --- Cálculo do BI Previsional (Motor de Inteligência) ---
+    # Criamos o objeto temporário para o simulador processar as regras
+    temp_show = Show(**show_data)
+    bi_results = await calculate_dynamic_budget_and_face_value(temp_show, db)
+
+    show_data["real_cache"] = bi_results["real_cache"]
+    show_data["logistics_budget_limit"] = bi_results["logistics_budget_limit"]
+
     show = Show(**show_data)
     db.add(show)
     await db.flush()
@@ -82,6 +92,7 @@ async def create_show(
 async def list_shows(
     db: DbSession,
     tenant_id: TenantId,
+    current_user: CurrentUser, # CORREÇÃO
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     status: str | None = Query(None, description="Filtrar por status"),
@@ -269,6 +280,15 @@ async def update_show(
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(show, field, value)
+
+    # --- Re-cálculo do BI Previsional (Motor de Inteligência) ---
+    # Se campos críticos mudaram, o BI deve ser recalculado
+    critical_fields = {"base_price", "production_kickback", "client_type", "negotiation_type", "location_city", "location_uf"}
+    if any(f in update_data for f in critical_fields):
+        from app.services.budget_simulator_service import calculate_dynamic_budget_and_face_value
+        bi_results = await calculate_dynamic_budget_and_face_value(show, db)
+        show.real_cache = bi_results["real_cache"]
+        show.logistics_budget_limit = bi_results["logistics_budget_limit"]
 
     await db.flush()
     await db.refresh(show)

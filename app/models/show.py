@@ -61,14 +61,14 @@ class NegotiationType(str, enum.Enum):
     Filtros de Negociação — define quem paga o quê.
 
     REGRA DA BÍBLIA:
-    - CACHE_DESPESAS: Contratante paga banda + compra todas passagens/hotéis
+    - CACHE_MAIS_DESPESAS: Contratante paga banda + compra todas passagens/hotéis
     - COLOCADO_TOTAL: Contratante paga valor cheio, produtora assume 100% logística
-    - COLOCADO_CIDADE: Produtora banca aéreo até destino, contratante banca hotel+van local
+    - CACHE_MAIS_AEREO: Produtora banca aéreo até destino, contratante banca hotel+van local
     - PERSONALIZADO: Regra customizada (campo custom_negotiation_notes)
     """
-    CACHE_DESPESAS = "CACHE_DESPESAS"
-    COLOCADO_CIDADE = "COLOCADO_CIDADE"
+    CACHE_MAIS_DESPESAS = "CACHE_MAIS_DESPESAS"
     COLOCADO_TOTAL = "COLOCADO_TOTAL"
+    CACHE_MAIS_AEREO = "CACHE_MAIS_AEREO"
     PERSONALIZADO = "PERSONALIZADO"
 
 
@@ -182,6 +182,12 @@ class Show(TenantMixin, TimestampMixin, Base):
         default=0,
         nullable=False,
         comment="Percentual de imposto sobre a Nota Fiscal",
+    )
+    logistics_budget_limit: Mapped[float] = mapped_column(
+        Numeric(14, 2),
+        default=0,
+        nullable=False,
+        comment="Limite de Budget Logístico (Simulador BI)",
     )
 
     # --- Travas de Segurança ---
