@@ -49,8 +49,13 @@ class FinancialParserService:
         try:
             logger.info(f"Iniciando parser financeiro idempotente para show {show_id}")
 
-            # 1. Limpeza Cirúrgica (Idempotência)
-            # Remove apenas despesas de equipe geradas automaticamente para este show
+            # 1. Lock de Linha (Atomicidade/Idempotência)
+            # Bloqueia o registro do show para evitar que múltiplos workers processem o mesmo show simultaneamente
+            from app.models.show import Show
+            stmt_lock = select(Show).where(Show.id == show_id).with_for_update()
+            await db.execute(stmt_lock)
+
+            # 2. Limpeza Cirúrgica (Idempotência)
             stmt_delete = delete(FinancialTransaction).where(
                 FinancialTransaction.show_id == show_id,
                 FinancialTransaction.tenant_id == tenant_id,

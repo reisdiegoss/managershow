@@ -116,7 +116,17 @@ export function DynamicFormRenderer({ fields, onSubmit, submitLabel = "Salvar Da
                                         </div>
                                     );
                                 }
-                                return <div />;
+                                if (field.type === 'number') {
+                                    return <Input
+                                        type="number"
+                                        inputMode="decimal"
+                                        step="0.01"
+                                        placeholder={field.placeholder}
+                                        onChange={(e) => onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                        value={value || ''}
+                                        className="h-12 rounded-xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all text-sm"
+                                    />;
+                                }
                             }}
                         />
                         {errors[field.id] && (

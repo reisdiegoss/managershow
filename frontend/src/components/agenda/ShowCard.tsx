@@ -46,8 +46,8 @@ export function ShowCard({ show, className }: ShowCardProps) {
 
                 <div className="space-y-1">
                     <h4 className="text-sm font-bold text-slate-800 flex items-center gap-1">
-                        <MapPin className="h-3 w-3 text-indigo-500" />
-                        {show.location_city} - {show.location_uf}
+                        <MapPin className="h-3 w-3 text-indigo-500 shrink-0" />
+                        <span className="truncate">{show.location_city} - {show.location_uf}</span>
                     </h4>
                     <p className="text-[11px] font-medium text-slate-500 italic">
                         {show.negotiation_type || 'Tipo de Negociação'}

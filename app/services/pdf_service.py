@@ -7,7 +7,10 @@ from fastapi import HTTPException
 
 # Configuração do Jinja2
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
-template_env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+template_env = Environment(
+    loader=FileSystemLoader(TEMPLATE_DIR),
+    autoescape=True
+)
 
 class PDFService:
     @staticmethod
