@@ -30,14 +30,58 @@ interface PreShowCrewProps {
     onAddEventual: (name: string, role: string) => void;
 }
 
+/**
+ * PreShowCrew - Gestão Dinâmica de Escala e Diárias
+ * Refatorado na Fase 15 para eliminar débitos técnicos e suportar o Motor de Equipe Fixa.
+ */
 export default function PreShowCrew({ members, onUpdateMember, onAddEventual }: PreShowCrewProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { toast } = useToast();
 
-    /**
-     * Lógica para lidar com a mudança de tipo de diária.
-     * Implementa Optimistic UI e exibe Toast de confirmação.
-     */
+    // Verificação de segurança para lista vazia (Estado inicial real)
+    if (!members || members.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30">
+                <Users size={48} className="text-slate-200 mb-4" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">
+                    Nenhum membro escalado.<br />Importe a equipe fixa ou adicione eventuais.
+                </p>
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="mt-6 rounded-2xl border-indigo-100 bg-white text-indigo-600 font-bold uppercase italic hover:bg-indigo-50">
+                            <Plus className="mr-2 h-4 w-4" /> Add Primeiro Staff
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="rounded-[2rem] border-0 shadow-2xl">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-black italic uppercase tracking-tight">Colaborador Eventual</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.currentTarget);
+                            onAddEventual(formData.get("name") as string, formData.get("role") as string);
+                            setIsModalOpen(false);
+                        }} className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Nome Completo</Label>
+                                <Input name="name" placeholder="Ex: João da Silva" className="rounded-xl border-slate-100" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Função / Cargo</Label>
+                                <Input name="role" placeholder="Ex: Roadie Freelancer" className="rounded-xl border-slate-100" required />
+                            </div>
+                            <DialogFooter className="pt-4">
+                                <Button type="submit" className="w-full rounded-2xl bg-indigo-600 py-6 text-sm font-black uppercase italic shadow-xl shadow-indigo-100">
+                                    Adicionar à Escala
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        );
+    }
+
     const handleDiariaChange = (memberId: string, value: string) => {
         onUpdateMember(memberId, { diaria_type: value as DiariaType });
         toast({
@@ -46,12 +90,8 @@ export default function PreShowCrew({ members, onUpdateMember, onAddEventual }: 
         });
     };
 
-    /**
-     * Lógica para salvar a justificativa da diária.
-     */
     const handleJustificationSave = (memberId: string, justification: string) => {
         onUpdateMember(memberId, { diaria_justification: justification });
-        // Toast opcional aqui para não sobrecarregar
     };
 
     const handleAddEventualSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -115,7 +155,6 @@ export default function PreShowCrew({ members, onUpdateMember, onAddEventual }: 
                 {members.map((member) => (
                     <Card key={member.id} className="group relative overflow-hidden rounded-[1.5rem] border-slate-100 p-5 transition-all hover:shadow-md bg-white">
                         <div className="flex flex-col gap-4">
-                            {/* Top row: Member Info */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
@@ -149,7 +188,6 @@ export default function PreShowCrew({ members, onUpdateMember, onAddEventual }: 
                                 </div>
                             </div>
 
-                            {/* Conditional Justification Field */}
                             {member.diaria_type !== "PADRAO" && (
                                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                                     <Label className="mb-2 flex items-center gap-1 text-[9px] font-black uppercase text-rose-500">
@@ -165,7 +203,6 @@ export default function PreShowCrew({ members, onUpdateMember, onAddEventual }: 
                             )}
                         </div>
 
-                        {/* Visual indicator of status */}
                         <div className={`absolute right-0 top-0 h-full w-1 ${member.diaria_type === 'PADRAO' ? 'bg-indigo-400' : 'bg-rose-400'}`} />
                     </Card>
                 ))}

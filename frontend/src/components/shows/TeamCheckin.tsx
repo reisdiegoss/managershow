@@ -10,6 +10,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { Users2, CheckCircle2, XCircle, AlertTriangle, Zap, MinusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * TeamCheckin - Fechamento de Estrada Dinâmico
+ * Refatorado na Fase 15 para integrar com o Motor de Equipe e JSONB.
+ */
 interface TeamCheckinProps {
     showId: string;
     teamMembers: TeamMember[];

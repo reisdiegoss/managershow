@@ -70,6 +70,11 @@ class Artist(TenantMixin, TimestampMixin, Base):
         back_populates="artist",
         lazy="raise",
     )
+    crew_members: Mapped[list["ArtistCrew"]] = relationship(  # noqa: F821
+        "ArtistCrew",
+        back_populates="artist",
+        lazy="raise",
+    )
 
     def __repr__(self) -> str:
         return f"<Artist(id={self.id}, name='{self.name}')>"

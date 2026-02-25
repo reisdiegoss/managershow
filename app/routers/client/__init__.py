@@ -22,6 +22,8 @@ from app.routers.client.daysheet import router as daysheet_router
 from app.routers.client.road_closing import router as road_closing_router
 from app.routers.client.dre import router as dre_router
 from app.routers.client.artists import router as artists_router
+from app.routers.client.artist_crew import router as artist_crew_router
+from app.routers.client.form_templates import router as form_templates_router
 from app.routers.client.contractors import router as contractors_router
 from app.routers.client.venues import router as venues_router
 from app.routers.client.documents import router as documents_router
@@ -37,6 +39,8 @@ router.include_router(daysheet_router)
 router.include_router(road_closing_router)
 router.include_router(dre_router)
 router.include_router(artists_router)
+router.include_router(artist_crew_router)
+router.include_router(form_templates_router)
 router.include_router(contractors_router)
 router.include_router(venues_router)
 router.include_router(documents_router)

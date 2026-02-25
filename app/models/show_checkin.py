@@ -10,8 +10,8 @@ Suporta dados offline-sync: os IDs chegam em batch do app mobile.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, func
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy import DateTime, ForeignKey, func, Text
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TenantMixin
@@ -50,6 +50,12 @@ class ShowCheckin(TenantMixin, Base):
         server_default=func.now(),
         nullable=False,
         comment="Data/hora do check-in",
+    )
+    dynamic_data: Mapped[dict] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
+        comment="Dados dinâmicos do formulário customizado (ex: placa, km, foto)"
     )
 
     # --- Relacionamentos ---
