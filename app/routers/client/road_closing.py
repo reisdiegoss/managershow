@@ -96,6 +96,19 @@ async def batch_checkin(
 
     await db.flush()
 
+    # --- Fase 16: Gatilho do Parser Financeiro Inteligente ---
+    try:
+        from app.services.financial_parser_service import FinancialParserService
+        await FinancialParserService.sync_crew_financials(
+            show_id=show_id,
+            tenant_id=tenant_id,
+            db=db
+        )
+    except Exception as e:
+        # Logamos o erro mas não impedimos o sucesso do check-in no banco (conforme sugestão do usuário)
+        import logging
+        logging.getLogger(__name__).error(f"Erro ao processar parser financeiro: {str(e)}")
+
     return {
         "show_id": str(show_id),
         "checked_in": checked_count,

@@ -18,7 +18,7 @@ REGRA DO SPECS.md:
 import enum
 import uuid
 
-from sqlalchemy import Enum, ForeignKey, Numeric, String, Text
+from sqlalchemy import Boolean, Enum, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -137,6 +137,12 @@ class FinancialTransaction(TenantMixin, TimestampMixin, Base):
     notes: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
+    )
+    is_auto_generated: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        comment="Flag que indica se a transação foi gerada automaticamente pelo sistema (ex: Parser de Equipe)",
     )
 
     # --- Relacionamentos ---
