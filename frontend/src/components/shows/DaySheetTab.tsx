@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Timeline } from "./Timeline";
 import { TimelineEvent } from "@/types/show";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useApi } from "@/lib/api";
 import {
     Hotel,
     CloudSun,
@@ -13,7 +15,9 @@ import {
     Phone,
     Share2,
     Download,
-    CalendarDays
+    CalendarDays,
+    Send,
+    Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -37,8 +41,30 @@ const mockTimeline: TimelineEvent[] = [
     { id: '7', time: '01:00', title: 'Retorno ao Hotel', icon: 'check' },
 ];
 
-export function DaySheetTab({ artistName, date, city }: DaySheetTabProps) {
+export function DaySheetTab({ showId, artistName, date, city }: DaySheetTabProps) {
     const { toast } = useToast();
+    const { api } = useApi();
+    const [isPublishing, setIsPublishing] = useState(false);
+
+    const handlePublish = async () => {
+        setIsPublishing(true);
+        try {
+            await api.post(`/client/shows/${showId}/daysheet/publish`);
+            toast({
+                title: "Roteiro Publicado! 🚀",
+                description: "A equipe técnica e os músicos foram notificados nos seus celulares via Information Push.",
+                variant: "default",
+            });
+        } catch (error) {
+            toast({
+                title: "Falha na Publicação",
+                description: "Ocorreu um erro ao disparar as notificações. Tente novamente em instantes.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsPublishing(false);
+        }
+    };
 
     const handleAction = (action: string) => {
         toast({
@@ -49,6 +75,36 @@ export function DaySheetTab({ artistName, date, city }: DaySheetTabProps) {
 
     return (
         <div className="space-y-8">
+            {/* CTA Principal de Publicação — Information Push UX */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-6 rounded-[2rem] glass-morphism border border-emerald-500/20 bg-emerald-500/5 shadow-lg">
+                <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+                        <Send className="h-6 w-6 text-emerald-400" />
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-black text-slate-100 uppercase italic">Pronto para a Estrada?</h4>
+                        <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Dispare o roteiro para toda a equipe</p>
+                    </div>
+                </div>
+                <Button
+                    onClick={handlePublish}
+                    disabled={isPublishing}
+                    className="w-full md:w-auto rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all h-14 px-8 text-xs font-black uppercase tracking-widest"
+                >
+                    {isPublishing ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Disparando notificações...
+                        </>
+                    ) : (
+                        <>
+                            <Send className="mr-2 h-4 w-4" />
+                            Publicar e Notificar Equipe
+                        </>
+                    )}
+                </Button>
+            </div>
+
             {/* Header Dark do Roteiro */}
             <div className="rounded-[2rem] bg-slate-900 p-8 text-white relative overflow-hidden shadow-2xl">
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -132,11 +188,12 @@ export function DaySheetTab({ artistName, date, city }: DaySheetTabProps) {
             {/* Timeline Section */}
             <div className="glass-card rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
 
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 mb-12 italic border-b border-slate-100 pb-4">
-                    Linha do Tempo <span className="text-indigo-600">Oficial</span>
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-100 mb-12 italic border-b border-white/5 pb-4">
+                    Linha do Tempo <span className="text-indigo-400">Oficial</span>
                 </h3>
                 <Timeline events={mockTimeline} />
             </div>
         </div>
     );
 }
+

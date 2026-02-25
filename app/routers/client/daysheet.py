@@ -85,12 +85,52 @@ async def add_timeline_item(
     return item
 
 
+@router.post("/publish", summary="Publish Day Sheet & Notify Crew", status_code=200)
+async def publish_daysheet(
+    show_id: uuid.UUID,
+    db: DbSession,
+    current_user: CurrentUser,
+) -> dict:
+    """
+    Publica o Day Sheet e dispara notificações em background para a equipe.
+    Este é o 'Information Push' que retira o peso operacional das costas do produtor.
+    """
+    tenant_id = current_user.tenant_id
+
+    # 1. Busca o Show e valida permissão
+    stmt = tenant_query(Show, tenant_id).where(Show.id == show_id)
+    result = await db.execute(stmt)
+    show = result.scalar_one_or_none()
+    if not show:
+        raise ShowNotFoundException(show_id)
+
+    # 2. Atualiza Status para EM_ESTRADA (Publicado)
+    show.status = ShowStatus.EM_ESTRADA
+    await db.flush()
+
+    # 3. Disparo da Task Celery (Background)
+    try:
+        from app.tasks.notifications import notify_crew_about_daysheet
+        notify_crew_about_daysheet.delay(str(show_id), str(tenant_id))
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Falha ao enfileirar task de notificação: {str(e)}")
+        # Não travamos a resposta se o worker falhar, mas logamos o erro
+
+    return {
+        "show_id": str(show_id),
+        "status": show.status.value,
+        "message": "Roteiro publicado e equipe notificada com sucesso!",
+    }
+
+
 @router.post("/finalize", summary="Finalize Day Sheet", status_code=200)
 async def finalize_daysheet(
     show_id: uuid.UUID,
     db: DbSession,
     current_user: CurrentUser,
 ) -> dict:
+
     """Finaliza o Day Sheet → status EM_ESTRADA."""
     tenant_id = current_user.tenant_id
 
