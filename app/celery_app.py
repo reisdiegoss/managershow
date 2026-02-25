@@ -4,9 +4,21 @@ Manager Show — Celery App Config
 
 import os
 from celery import Celery
+import sentry_sdk
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 # URL do Redis carregada do ambiente ou default
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
+# Configuração de Observabilidade (Sentry)
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[CeleryIntegration()],
+        environment=os.getenv("APP_ENV", "development"),
+        traces_sample_rate=1.0,
+    )
 
 celery_app = Celery(
     "manager_show",

@@ -11,6 +11,7 @@ IMPORTANTE: Todo novo model criado DEVE ser importado aqui.
 from app.models.base import Base, TenantMixin, TimestampMixin
 from app.models.tenant import Tenant, TenantStatus
 from app.models.user import User
+from app.models.user_artist import UserArtistAccess
 from app.models.role import Role, DEFAULT_PERMISSIONS
 from app.models.artist import Artist
 from app.models.show import (

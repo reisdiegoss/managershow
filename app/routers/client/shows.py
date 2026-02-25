@@ -12,8 +12,9 @@ CRUD de shows com:
 import uuid
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
+from app.core.limiter import limiter
 
 from app.core.dependencies import CurrentUser, DbSession, TenantId
 from app.core.permissions import require_permissions
@@ -100,6 +101,10 @@ async def list_shows(
     if year:
         filters.append(func.extract("year", Show.date_show) == year)
 
+    # --- Filtro de Visibilidade (Nível 3: Escopo de Artista) ---
+    if not current_user.has_global_artist_access:
+        filters.append(Show.artist_id.in_(current_user.allowed_artist_ids))
+
     # Total
     count_stmt = select(func.count()).select_from(Show).where(*filters)
     total = (await db.execute(count_stmt)).scalar() or 0
@@ -174,11 +179,19 @@ async def get_show(
     if not show:
         raise ShowNotFoundException(show_id)
 
+    # --- Proteção de Rota (Nível 3: Escopo de Artista) ---
+    if not current_user.has_global_artist_access:
+        if show.artist_id not in current_user.allowed_artist_ids:
+            # Retornar 404 (Security through Obscurity)
+            raise ShowNotFoundException(show_id)
+
     return show
 
 
 @router.get("/{show_id}/pdf/daysheet", summary="Download Day Sheet PDF")
+@limiter.limit("2/minute")
 async def download_daysheet_pdf(
+    request: Request,
     show_id: uuid.UUID,
     db: DbSession,
     tenant_id: TenantId,
@@ -205,6 +218,11 @@ async def download_daysheet_pdf(
     
     if not show:
         raise ShowNotFoundException(show_id)
+
+    # --- Proteção de Rota (Nível 3: Escopo de Artista) ---
+    if not current_user.has_global_artist_access:
+        if show.artist_id not in current_user.allowed_artist_ids:
+            raise ShowNotFoundException(show_id)
 
     team = [checkin.user.name for checkin in show.checkin_users if checkin.user]
     

@@ -19,6 +19,7 @@ import {
     MapPin,
     ChevronRight
 } from "lucide-react";
+import { GlobalArtistSelector } from "@/components/layout/GlobalArtistSelector";
 
 /**
  * Itens de navegação principal
@@ -38,6 +39,7 @@ const cadastroItems = [
     { label: "Artistas", icon: Mic2, href: "/artistas" },
     { label: "Contratantes", icon: Building2, href: "/contratantes" },
     { label: "Locais (Venues)", icon: MapPin, href: "/locais" },
+    { label: "Equipe", icon: Users, href: "/configuracoes/equipe" },
     { label: "Templates", icon: FileText, href: "/templates" },
 ];
 
@@ -124,13 +126,16 @@ export default function DashboardLayout({
                 <header className="flex h-16 w-full items-center justify-between border-b border-white/5 glass-morphism px-6 z-10">
 
                     {/* Mobile Logo / Desktop Title */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
                         <div className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold italic">M</div>
                         <h2 className="text-lg font-black text-slate-100 md:block hidden italic uppercase tracking-tight">
                             {pathname === "/" ? "Dashboard Analítico" : pathname.replace("/", "").toUpperCase()}
                         </h2>
-                        <span className="md:hidden font-black text-slate-100 italic tracking-tighter">MANAGER SHOW</span>
 
+                        {/* Seletor Global de Artista (Ocultação Inteligente) */}
+                        <div className="hidden md:block">
+                            <GlobalArtistSelector />
+                        </div>
                     </div>
 
                     {/* Ações e Perfil */}

@@ -5,11 +5,12 @@ Manager Show — Router: Documents (Motor de Documentos Dinâmico)
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.core.dependencies import CurrentUser, DbSession, TenantId
+from app.core.limiter import limiter
 from app.core.permissions import require_permissions
 from app.core.tenant_filter import tenant_query
 from app.models.document_template import DocumentEntityType, DocumentTemplate
@@ -103,7 +104,9 @@ async def delete_template(
 
 
 @router.post("/templates/{template_id}/generate")
+@limiter.limit("2/minute")
 async def generate_dynamic_document(
+    request: Request,
     template_id: uuid.UUID,
     payload: DocumentGenerateRequest,
     db: DbSession,
@@ -139,6 +142,12 @@ async def generate_dynamic_document(
         show = show_res.scalar_one_or_none()
         if not show:
             raise HTTPException(status_code=404, detail="Show não encontrado.")
+        
+        # --- Proteção de Rota (Nível 3: Escopo de Artista) ---
+        if not current_user.has_global_artist_access:
+            if show.artist_id not in current_user.allowed_artist_ids:
+                raise HTTPException(status_code=404, detail="Show não encontrado.")
+
         context["show"] = show
 
     elif template.entity_type == DocumentEntityType.ARTIST:
@@ -147,6 +156,12 @@ async def generate_dynamic_document(
         artist = art_res.scalar_one_or_none()
         if not artist:
             raise HTTPException(status_code=404, detail="Artista não encontrado.")
+        
+        # --- Proteção de Rota (Nível 3: Escopo de Artista) ---
+        if not current_user.has_global_artist_access:
+            if artist.id not in current_user.allowed_artist_ids:
+                raise HTTPException(status_code=404, detail="Artista não encontrado.")
+
         context["artist"] = artist
 
     elif template.entity_type == DocumentEntityType.CONTRACTOR:

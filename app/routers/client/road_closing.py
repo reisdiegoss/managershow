@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.core.dependencies import CurrentUser, DbSession
+from app.core.limiter import limiter
 from app.core.permissions import require_permissions
 from app.exceptions import ShowNotFoundException
 from app.models.financial_transaction import (
@@ -54,7 +55,9 @@ class ExtraExpense(BaseModel):
 
 
 @router.post("/checkin", status_code=201)
+@limiter.limit("1/second")
 async def batch_checkin(
+    request: Request,
     show_id: uuid.UUID,
     data: CheckinBatch,
     db: DbSession,
@@ -74,6 +77,11 @@ async def batch_checkin(
     show = result.scalar_one_or_none()
     if not show:
         raise ShowNotFoundException(show_id)
+
+    # --- Proteção de Rota (Nível 3: Escopo de Artista) ---
+    if not current_user.has_global_artist_access:
+        if show.artist_id not in current_user.allowed_artist_ids:
+            raise ShowNotFoundException(show_id)
 
     # Registrar check-in para cada usuário
     checked_count = 0
@@ -118,7 +126,9 @@ async def batch_checkin(
 
 
 @router.post("/extras", status_code=201)
+@limiter.limit("1/second")
 async def add_extra_expense(
+    request: Request,
     show_id: uuid.UUID,
     db: DbSession,
     description: str = Form(...),
@@ -140,6 +150,11 @@ async def add_extra_expense(
     show = result.scalar_one_or_none()
     if not show:
         raise ShowNotFoundException(show_id)
+
+    # --- Proteção de Rota (Nível 3: Escopo de Artista) ---
+    if not current_user.has_global_artist_access:
+        if show.artist_id not in current_user.allowed_artist_ids:
+            raise ShowNotFoundException(show_id)
 
     # TRAVA MESTRA — hierarquia de status
     if not show.can_add_costs():
@@ -205,6 +220,11 @@ async def close_road(
     show = result.scalar_one_or_none()
     if not show:
         raise ShowNotFoundException(show_id)
+
+    # --- Proteção de Rota (Nível 3: Escopo de Artista) ---
+    if not current_user.has_global_artist_access:
+        if show.artist_id not in current_user.allowed_artist_ids:
+            raise ShowNotFoundException(show_id)
 
     # Verifica se o show está em EM_ESTRADA para permitir fechamento
     if not show.can_close_road():

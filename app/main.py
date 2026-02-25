@@ -12,11 +12,30 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.responses import JSONResponse
+import sentry_sdk
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 
 from app.config import get_settings
 from app.exceptions import ManagerShowException
 
 settings = get_settings()
+
+# =============================================================================
+# Observabilidade: Sentry
+# =============================================================================
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.app_env,
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )
+
+# =============================================================================
+# SecOps: Limiter (SlowAPI)
+# =============================================================================
+from app.core.limiter import limiter
 
 # CDN alternativo — cdn.jsdelivr.net está com timeout
 SWAGGER_JS_URL = "https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"
@@ -44,6 +63,10 @@ app = FastAPI(
     redoc_url=None,
     openapi_url="/openapi.json",
 )
+
+# Registrar Limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 # =============================================================================
@@ -139,11 +162,11 @@ async def generic_exception_handler(
 # Registro de Routers
 # =============================================================================
 
-from app.routers.retaguarda import router as retaguarda_router  # noqa: E402
-from app.routers.client import router as client_router  # noqa: E402
+from app.routers.client import users as client_users_router # noqa: E402
 
 app.include_router(retaguarda_router)
 app.include_router(client_router)
+app.include_router(client_users_router.router, prefix="/api/v1/client")
 
 
 # =============================================================================

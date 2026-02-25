@@ -91,7 +91,11 @@ async def _get_user_by_clerk_id(db: AsyncSession, clerk_id: str) -> User:
     """Busca o User no banco pelo clerk_id do Clerk."""
     stmt = (
         select(User)
-        .options(selectinload(User.role), selectinload(User.tenant))
+        .options(
+            selectinload(User.role),
+            selectinload(User.tenant),
+            selectinload(User.allowed_artists)
+        )
         .where(User.clerk_id == clerk_id)
     )
     result = await db.execute(stmt)
@@ -111,7 +115,11 @@ async def _get_user_by_id(db: AsyncSession, user_id: uuid.UUID) -> User:
     """Busca o User no banco pelo ID interno (modo dev)."""
     stmt = (
         select(User)
-        .options(selectinload(User.role), selectinload(User.tenant))
+        .options(
+            selectinload(User.role),
+            selectinload(User.tenant),
+            selectinload(User.allowed_artists)
+        )
         .where(User.id == user_id)
     )
     result = await db.execute(stmt)

@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     # --- Redis (Cache, Sessões, Broker do Celery) ---
     redis_url: str = "redis://localhost:6379/0"
 
+    # --- Observabilidade (Sentry) ---
+    sentry_dsn: str = ""
+
     # --- Clerk (Autenticação JWT) ---
     clerk_secret_key: str = "sk_test_PLACEHOLDER"
     clerk_jwks_url: str = "https://seu-app.clerk.accounts.dev/.well-known/jwks.json"

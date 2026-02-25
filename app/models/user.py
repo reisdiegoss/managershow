@@ -61,6 +61,13 @@ class User(TenantMixin, TimestampMixin, Base):
         nullable=False,
         comment="Se False, o usuário está desativado e não pode acessar a API",
     )
+    has_global_artist_access: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        comment="Se True, ignora a tabela de associação e vê todos os artistas do tenant",
+    )
 
     # --- Relacionamentos ---
     tenant: Mapped["Tenant"] = relationship(  # noqa: F821
@@ -71,11 +78,24 @@ class User(TenantMixin, TimestampMixin, Base):
         back_populates="users",
         lazy="raise",
     )
+    allowed_artists: Mapped[list["Artist"]] = relationship( # noqa: F821
+        "Artist",
+        secondary="user_artists",
+        lazy="selectin",
+        viewonly=True
+    )
     seller_profile: Mapped["Seller | None"] = relationship(
         back_populates="user",
         uselist=False,
         lazy="select",
     )
+
+    @property
+    def allowed_artist_ids(self) -> list[uuid.UUID]:
+        """Retorna a lista de IDs de artistas permitidos para este usuário."""
+        if self.has_global_artist_access:
+            return []  # Vazio significa todos
+        return [artist.id for artist in self.allowed_artists]
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, name='{self.name}', clerk_id='{self.clerk_id}')>"
