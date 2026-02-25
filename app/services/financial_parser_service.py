@@ -1,9 +1,9 @@
 """
 Manager Show — Service: FinancialParserService
-Implementa a Fase 16: Parser Financeiro Inteligente.
+Implementa a Fase 16: Parser Financeiro Inteligente e Idempotente.
 
-Este serviço traduz as respostas textuais do JSONB do check-in (ex: "DOBRADO", "MAIS_MEIA")
-em lançamentos contábeis reais no DRE, consultando o ArtistCrew base.
+Traduz respostas do JSONB de check-in em lançamentos contábeis automáticos,
+consultando salários-base da ArtistCrew e aplicando multiplicadores de negócio.
 """
 
 import uuid
@@ -14,11 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.financial_transaction import FinancialTransaction, TransactionType, TransactionCategory
 from app.models.artist_crew import ArtistCrew
-from app.models.show_checkin import ShowCheckin
 
 logger = logging.getLogger(__name__)
 
-# Regras de Negócio — Multiplicadores de Cachê e Diária
+# --- Regras de Negócio: Multiplicadores (Diretrizes Invioláveis) ---
 CACHE_MULTIPLIERS = {
     "PADRAO": Decimal("1.0"),
     "MEIO": Decimal("0.5"),
@@ -31,7 +30,8 @@ DIARIA_MULTIPLIERS = {
     "PADRAO": Decimal("1.0"),
     "MAIS_MEIA": Decimal("1.5"),
     "MAIS_UMA": Decimal("2.0"),
-    "SEM_DIARIA": Decimal("0.0")
+    "SEM_DIARIA": Decimal("0.0"),
+    "OUTRO": Decimal("1.0") # Mantém base, mas exige justificativa no front
 }
 
 class FinancialParserService:
@@ -39,16 +39,18 @@ class FinancialParserService:
     async def sync_crew_financials(
         show_id: uuid.UUID,
         tenant_id: uuid.UUID,
+        crew_data: list[dict],
         db: AsyncSession
     ):
         """
-        Lê o check-in do show e sincroniza o financeiro.
-        Mantém a idempotência deletando registros automáticos anteriores.
+        Sincroniza as despesas de equipe no financeiro com base no check-in.
+        Garante idempotência limpando lançamentos automáticos anteriores do show.
         """
         try:
-            logger.info(f"Iniciando parser financeiro para o show {show_id}")
+            logger.info(f"Iniciando parser financeiro idempotente para show {show_id}")
 
-            # 1. Limpeza de Idempotência: Deleta transações automáticas anteriores deste show
+            # 1. Limpeza Cirúrgica (Idempotência)
+            # Remove apenas despesas de equipe geradas automaticamente para este show
             stmt_delete = delete(FinancialTransaction).where(
                 FinancialTransaction.show_id == show_id,
                 FinancialTransaction.tenant_id == tenant_id,
@@ -57,67 +59,62 @@ class FinancialParserService:
             )
             await db.execute(stmt_delete)
 
-            # 2. Busca todos os check-ins realizados para este show
-            # Nota: O formulário dinâmico está salvo em ShowCheckin.dynamic_data
-            stmt_checkins = select(ShowCheckin).where(
-                ShowCheckin.show_id == show_id,
-                ShowCheckin.tenant_id == tenant_id
-            )
-            result = await db.execute(stmt_checkins)
-            checkins = result.scalars().all()
-
-            if not checkins:
-                logger.warning(f"Nenhum check-in encontrado para o show {show_id}. Abortando parser.")
+            if not crew_data:
+                logger.warning(f"Sem dados de equipe para processar no show {show_id}")
                 return
 
-            # 3. Processamento das Transações
-            for checkin in checkins:
-                data = checkin.dynamic_data
-                # Esperamos crew_id (ou id do artista na equipe), cache_type e diaria_type
-                crew_id = data.get("crew_id")
-                cache_type = data.get("cache_type", "PADRAO")
-                diaria_type = data.get("diaria_type", "PADRAO")
+            # 2. Busca Otimizada (Performance)
+            # Extraímos todos os IDs para uma única query .in_()
+            crew_ids = [uuid.UUID(item["crew_id"]) for item in crew_data if "crew_id" in item]
+            
+            if not crew_ids:
+                return
 
-                if not crew_id:
+            stmt_base = select(ArtistCrew).where(ArtistCrew.id.in_(crew_ids))
+            result = await db.execute(stmt_base)
+            crew_base_map = {c.id: c for c in result.scalars().all()}
+
+            # 3. Processamento e Lançamento
+            new_transactions = []
+            for item in crew_data:
+                c_id = uuid.UUID(item["crew_id"])
+                crew = crew_base_map.get(c_id)
+
+                if not crew:
+                    logger.error(f"Integridade violada: Crew ID {c_id} não encontrado no cadastro.")
                     continue
 
-                # Busca o membro da equipe para obter o cachê base
-                stmt_crew = select(ArtistCrew).where(ArtistCrew.id == uuid.UUID(crew_id))
-                res_crew = await db.execute(stmt_crew)
-                member = res_crew.scalar_one_or_none()
+                # Matemática Oculta
+                mult_cache = CACHE_MULTIPLIERS.get(item.get("cache_type"), Decimal("1.0"))
+                mult_diaria = DIARIA_MULTIPLIERS.get(item.get("diaria_type"), Decimal("1.0"))
 
-                if not member:
-                    logger.error(f"Membro da equipe {crew_id} não encontrado no cadastro base.")
-                    continue
-
-                # Cálculos baseados nos multiplicadores
-                multiplier_cache = CACHE_MULTIPLIERS.get(cache_type, Decimal("1.0"))
-                multiplier_diaria = DIARIA_MULTIPLIERS.get(diaria_type, Decimal("1.0"))
-
-                valor_cache = Decimal(str(member.base_cache)) * multiplier_cache
-                valor_diaria = Decimal(str(member.base_diaria)) * multiplier_diaria
-
+                valor_cache = Decimal(str(crew.base_cache)) * mult_cache
+                valor_diaria = Decimal(str(crew.base_diaria)) * mult_diaria
                 total_membro = valor_cache + valor_diaria
 
                 if total_membro > 0:
-                    # Cria a transação financeira
+                    description = f"Pagamento Automático: {crew.name} ({crew.role})"
                     transaction = FinancialTransaction(
                         tenant_id=tenant_id,
                         show_id=show_id,
                         type=TransactionType.PRODUCTION_COST,
                         category=TransactionCategory.CREW_PAYMENT,
-                        description=f"Pagamento Equipe: {member.name} ({member.role}) - Ref: Check-in Estrada",
+                        description=description,
                         budgeted_amount=total_membro,
                         realized_amount=total_membro,
                         is_auto_generated=True,
-                        notes=f"Calculado automaticamente via Parser: Cachê({cache_type}) + Diária({diaria_type})"
+                        notes=f"Calculado: Cache={item.get('cache_type')} | Diaria={item.get('diaria_type')}"
                     )
-                    db.add(transaction)
+                    new_transactions.append(transaction)
 
-            await db.flush()
-            logger.info(f"Parser financeiro concluído com sucesso para o show {show_id}")
+            if new_transactions:
+                db.add_all(new_transactions)
+            
+            await db.commit()
+            logger.info(f"Sucesso: {len(new_transactions)} transações de equipe sincronizadas para o show {show_id}")
 
         except Exception as e:
-            logger.error(f"Falha crítica no Parser Financeiro: {str(e)}")
-            # Em caso de erro no parser, não queremos quebrar o fluxo principal, mas avisamos no log
+            logger.error(f"Erro no FinancialParserService: {str(e)}")
+            # Não lançamos o erro para cima para não travar o salvamento do formulário no router
+            # mas o log permite auditoria.
             raise e

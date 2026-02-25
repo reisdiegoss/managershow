@@ -141,6 +141,7 @@ class FinancialTransaction(TenantMixin, TimestampMixin, Base):
     is_auto_generated: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
+        server_default="false",
         nullable=False,
         comment="Flag que indica se a transação foi gerada automaticamente pelo sistema (ex: Parser de Equipe)",
     )

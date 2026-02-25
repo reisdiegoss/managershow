@@ -11,21 +11,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic
-"""fase_16_is_auto_generated
-
-Revision ID: c3ca71e494ff
-Revises: 166716aa9cad
-Create Date: 2026-02-25 12:54:48.018026
-"""
-from typing import Sequence, Union
-
-from alembic import op
-import sqlalchemy as sa
-
-
-# revision identifiers, used by Alembic
 revision: str = 'c3ca71e494ff'
-down_revision: Union[str, None] = '166716aa9cad'
+down_revision: Union[str, None] = '166716aa8cad'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
