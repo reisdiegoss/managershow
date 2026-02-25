@@ -67,7 +67,7 @@ export function DaySheetTab({ artistName, date, city }: DaySheetTabProps) {
                     <div className="flex items-center gap-3">
                         <Button
                             onClick={() => handleAction("Compartilhamento com Equipe")}
-                            className="rounded-2xl bg-white/10 hover:bg-white/20 text-white border-0 text-[10px] font-black uppercase tracking-widest px-6"
+                            className="rounded-2xl glass-morphism hover:bg-white/10 text-white border-0 text-[10px] font-black uppercase tracking-widest px-6"
                         >
                             <Share2 className="mr-2 h-4 w-4" /> Partilhar
                         </Button>
@@ -86,42 +86,42 @@ export function DaySheetTab({ artistName, date, city }: DaySheetTabProps) {
 
             {/* Quick Info Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="rounded-[2rem] border-slate-100 p-6 space-y-4 shadow-sm hover:shadow-md transition-all">
+                <Card className="rounded-[2rem] border-white/5 p-6 space-y-4 shadow-xl glass-card transition-all">
                     <div className="flex items-center gap-3">
-                        <div className="bg-indigo-50 p-3 rounded-2xl">
-                            <Hotel className="h-5 w-5 text-indigo-600" />
+                        <div className="bg-indigo-500/10 p-3 rounded-2xl">
+                            <Hotel className="h-5 w-5 text-indigo-400" />
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Hospedagem</p>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-sm font-black text-slate-900 italic uppercase tracking-tight">Hotel Fera Salvador</p>
+                        <p className="text-sm font-black text-slate-100 italic uppercase tracking-tight">Hotel Fera Salvador</p>
                         <p className="text-[11px] font-medium text-slate-500 truncate italic">R. do Chile, 20 - Centro Histórico</p>
                         <Link href="https://maps.google.com" className="text-[9px] font-black uppercase text-indigo-600 hover:underline">Ver no Mapa</Link>
                     </div>
                 </Card>
 
-                <Card className="rounded-[2rem] border-slate-100 p-6 space-y-4 shadow-sm hover:shadow-md transition-all">
+                <Card className="rounded-[2rem] border-white/5 p-6 space-y-4 shadow-xl glass-card transition-all">
                     <div className="flex items-center gap-3">
-                        <div className="bg-amber-50 p-3 rounded-2xl">
-                            <CloudSun className="h-5 w-5 text-amber-600" />
+                        <div className="bg-amber-500/10 p-3 rounded-2xl">
+                            <CloudSun className="h-5 w-5 text-amber-400" />
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Clima & Dress Code</p>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-sm font-black text-slate-900 italic uppercase tracking-tight">Sol com Nuvens — 28ºC</p>
+                        <p className="text-sm font-black text-slate-100 italic uppercase tracking-tight">Sol com Nuvens — 28ºC</p>
                         <p className="text-[11px] font-medium text-slate-500 italic">Uniforme Show: Preto / All Black</p>
                     </div>
                 </Card>
 
-                <Card className="rounded-[2rem] border-slate-100 p-6 space-y-4 shadow-sm hover:shadow-md transition-all">
+                <Card className="rounded-[2rem] border-white/5 p-6 space-y-4 shadow-xl glass-card transition-all">
                     <div className="flex items-center gap-3">
-                        <div className="bg-emerald-50 p-3 rounded-2xl">
-                            <UserCircle2 className="h-5 w-5 text-emerald-600" />
+                        <div className="bg-emerald-500/10 p-3 rounded-2xl">
+                            <UserCircle2 className="h-5 w-5 text-emerald-400" />
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contato Local</p>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-sm font-black text-slate-900 italic uppercase tracking-tight">Ricardo Produções</p>
+                        <p className="text-sm font-black text-slate-100 italic uppercase tracking-tight">Ricardo Produções</p>
                         <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 italic">
                             <Phone className="h-3 w-3" /> (71) 99988-7766
                         </div>
@@ -130,7 +130,8 @@ export function DaySheetTab({ artistName, date, city }: DaySheetTabProps) {
             </div>
 
             {/* Timeline Section */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 md:p-12 shadow-sm">
+            <div className="glass-card rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+
                 <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 mb-12 italic border-b border-slate-100 pb-4">
                     Linha do Tempo <span className="text-indigo-600">Oficial</span>
                 </h3>

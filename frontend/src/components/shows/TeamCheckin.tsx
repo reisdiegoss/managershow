@@ -48,7 +48,8 @@ export function TeamCheckin({ showId, teamMembers, onUpdateCache }: TeamCheckinP
     };
 
     return (
-        <Card className="rounded-[2.5rem] border-slate-100 p-6 md:p-8 shadow-sm space-y-8 bg-white/50 backdrop-blur-sm">
+        <Card className="rounded-[2.5rem] border-white/10 p-6 md:p-8 shadow-2xl space-y-8 glass-card">
+
             {/* Header com Progresso */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -60,7 +61,7 @@ export function TeamCheckin({ showId, teamMembers, onUpdateCache }: TeamCheckinP
                         {definedCount}/{teamMembers.length} Finalizados
                     </p>
                 </div>
-                <Progress value={progressValue} className="h-2 bg-slate-100" />
+                <Progress value={progressValue} className="h-2 bg-white/5" />
             </div>
 
             {/* Lista de Membros */}
@@ -69,13 +70,13 @@ export function TeamCheckin({ showId, teamMembers, onUpdateCache }: TeamCheckinP
                     <div key={member.id} className="space-y-3">
                         {/* Info do Membro */}
                         <div className="flex items-center gap-4 px-2">
-                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm shrink-0">
+                            <Avatar className="h-10 w-10 border-2 border-white/20 shadow-sm shrink-0">
                                 <AvatarFallback className="bg-slate-100 text-[10px] font-black text-slate-400">
                                     {member.name.split(' ').map(n => n[0]).join('')}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-black text-slate-900 italic uppercase truncate leading-none">
+                                <p className="text-sm font-black text-slate-100 italic uppercase truncate leading-none">
                                     {member.name}
                                 </p>
                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
@@ -105,7 +106,7 @@ export function TeamCheckin({ showId, teamMembers, onUpdateCache }: TeamCheckinP
                                             "min-h-[54px]", // Garantindo área de toque
                                             isSelected
                                                 ? `${opt.bgColor} border-transparent shadow-inner`
-                                                : "bg-white border-slate-50 text-slate-300 hover:border-slate-200"
+                                                : "glass-morphism border-white/5 text-slate-400 hover:border-white/20"
                                         )}
                                     >
                                         <opt.icon className={cn("h-5 w-5", isSelected ? opt.textColor : "text-slate-200")} />

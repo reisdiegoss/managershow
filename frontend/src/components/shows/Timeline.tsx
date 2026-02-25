@@ -44,7 +44,8 @@ export function Timeline({ events }: TimelineProps) {
                             "w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl border transition-all",
                             event.is_highlight
                                 ? "bg-rose-50 border-rose-200 shadow-sm"
-                                : "bg-white border-slate-100 hover:border-indigo-100"
+                                : "glass-card border-white/5 hover:border-indigo-500/30"
+
                         )}>
                             <div className="flex items-center justify-between space-x-2 mb-1">
                                 <div className={cn(

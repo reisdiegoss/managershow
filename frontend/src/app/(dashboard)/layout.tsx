@@ -49,10 +49,12 @@ export default function DashboardLayout({
     const pathname = usePathname();
 
     return (
-        <div className="flex h-screen w-full overflow-hidden bg-slate-50 text-slate-800">
+        <div className="flex h-screen w-full overflow-hidden bg-transparent text-slate-200">
+
 
             {/* 1. SIDEBAR (Desktop Only) */}
-            <aside className="hidden w-64 flex-col bg-slate-900 text-white shadow-2xl md:flex">
+            <aside className="hidden w-64 flex-col border-r border-white/5 glass-card md:flex shadow-2xl z-20">
+
                 {/* Logo Premium */}
                 <div className="flex items-center gap-3 border-b border-slate-800 p-6">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30">
@@ -108,7 +110,8 @@ export default function DashboardLayout({
 
                 {/* Footer Sidebar / Perfil */}
                 <div className="border-t border-slate-800 bg-slate-950/20 p-4">
-                    <div className="flex items-center justify-between rounded-xl bg-slate-800/30 p-2">
+                    <div className="flex items-center justify-between rounded-xl glass-morphism p-2 border border-white/5">
+
                         <UserButton afterSignOutUrl="/sign-in" showName />
                     </div>
                 </div>
@@ -118,26 +121,29 @@ export default function DashboardLayout({
             <main className="relative flex flex-1 flex-col overflow-hidden">
 
                 {/* Header Superior (Responsivo) */}
-                <header className="flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm">
+                <header className="flex h-16 w-full items-center justify-between border-b border-white/5 glass-morphism px-6 z-10">
+
                     {/* Mobile Logo / Desktop Title */}
                     <div className="flex items-center gap-2">
                         <div className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold italic">M</div>
-                        <h2 className="text-lg font-bold text-slate-800 md:block hidden">
+                        <h2 className="text-lg font-black text-slate-100 md:block hidden italic uppercase tracking-tight">
                             {pathname === "/" ? "Dashboard Analítico" : pathname.replace("/", "").toUpperCase()}
                         </h2>
-                        <span className="md:hidden font-black text-slate-900 italic tracking-tighter">MANAGER SHOW</span>
+                        <span className="md:hidden font-black text-slate-100 italic tracking-tighter">MANAGER SHOW</span>
+
                     </div>
 
                     {/* Ações e Perfil */}
                     <div className="flex items-center gap-4">
-                        <button className="hidden md:flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-indigo-700">
+                        <button className="hidden md:flex items-center gap-2 rounded-lg btn-premium px-4 py-2 text-sm font-bold text-white shadow-lg shadow-indigo-500/20">
                             Novo Show
                         </button>
-                        <div className="h-6 w-px bg-slate-200" />
-                        <button className="relative rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100">
+                        <div className="h-6 w-px bg-white/10" />
+                        <button className="relative rounded-full p-2 text-slate-400 transition-colors hover:bg-white/5">
                             <Bell className="h-5 w-5" />
-                            <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-rose-500" />
+                            <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-[#020617] bg-rose-500" />
                         </button>
+
                         <div className="md:hidden">
                             <UserButton afterSignOutUrl="/sign-in" />
                         </div>
@@ -150,7 +156,8 @@ export default function DashboardLayout({
                 </div>
 
                 {/* 3. BOTTOM NAVIGATION (Mobile Only) */}
-                <nav className="fixed bottom-0 z-50 flex w-full items-center justify-around border-t border-slate-200 bg-white/80 px-2 py-3 backdrop-blur-md md:hidden">
+                <nav className="fixed bottom-0 z-50 flex w-full items-center justify-around border-t border-white/5 glass-morphism px-2 py-3 backdrop-blur-xl md:hidden">
+
                     {[...mainNavItems.slice(0, 3), { label: "Perfil", icon: Users, href: "/profile" }].map((item) => {
                         const isActive = pathname === item.href;
                         return (

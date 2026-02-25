@@ -153,7 +153,8 @@ export default function PreShowCrew({ members, onUpdateMember, onAddEventual }: 
 
             <div className="grid gap-3">
                 {members.map((member) => (
-                    <Card key={member.id} className="group relative overflow-hidden rounded-[1.5rem] border-slate-100 p-5 transition-all hover:shadow-md bg-white">
+                    <Card key={member.id} className="group relative overflow-hidden rounded-[1.5rem] border-white/5 p-5 transition-all hover:shadow-xl glass-card">
+
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">

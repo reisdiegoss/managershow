@@ -141,7 +141,8 @@ export function NewShowDialog({ onShowCreated }: { onShowCreated?: () => void })
                     Nova Ação
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-slate-200 bg-white shadow-2xl overflow-hidden p-0">
+            <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-white/10 glass-card shadow-2xl overflow-hidden p-0 text-slate-100">
+
                 <div className="bg-indigo-600 p-8 text-white relative">
                     <Sparkles className="absolute top-4 right-4 h-12 w-12 text-white/10" />
                     <DialogHeader>

@@ -18,7 +18,8 @@ export function MonthNavigator({ date, onChange }: MonthNavigatorProps) {
 
     return (
         <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 rounded-2xl bg-white border border-slate-200 p-1 shadow-sm">
+            <div className="flex items-center gap-1 rounded-2xl glass-morphism border border-white/5 p-1 shadow-xl">
+
                 <button
                     onClick={prevMonth}
                     className="rounded-xl p-2 text-slate-400 hover:bg-slate-50 hover:text-indigo-600 transition-all"

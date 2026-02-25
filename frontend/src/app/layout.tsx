@@ -20,8 +20,15 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider localization={ptBR}>
-      <html lang="pt-BR">
-        <body className={`${inter.className} bg-slate-50 antialiased`}>
+      <html lang="pt-BR" className="dark">
+        <head>
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <meta name="theme-color" content="#020617" />
+          <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        </head>
+        <body className={`${inter.className} antialiased selection:bg-indigo-500/30`}>
           {children}
           <Toaster />
         </body>

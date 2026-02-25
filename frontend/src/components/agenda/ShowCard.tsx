@@ -23,7 +23,7 @@ export function ShowCard({ show, className }: ShowCardProps) {
     return (
         <Link href={`/shows/${show.id}`} className="block">
             <Card className={cn(
-                "group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md cursor-grab active:cursor-grabbing",
+                "group relative overflow-hidden rounded-xl border border-white/5 glass-card p-4 shadow-xl transition-all hover:border-indigo-500/30 hover:shadow-indigo-500/10 cursor-grab active:cursor-grabbing",
                 className
             )}>
                 <div className="mb-3 flex items-center justify-between">

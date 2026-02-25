@@ -84,22 +84,27 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
         <div className="space-y-8 pb-12">
             {/* Hero Financeiro - Indicadores de Impacto */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="rounded-[2.5rem] bg-white border-slate-100 p-8 shadow-sm group hover:border-indigo-200 transition-all">
+                <Card className="rounded-[2.5rem] glass-card p-8 shadow-xl group hover:border-indigo-500/30 transition-all">
+
                     <div className="flex items-center justify-between mb-4">
-                        <div className="bg-emerald-50 p-3 rounded-2xl group-hover:scale-110 transition-transform">
+                        <div className="bg-emerald-500/10 p-3 rounded-2xl group-hover:scale-110 transition-transform">
+
                             <TrendingUp className="h-6 w-6 text-emerald-600" />
                         </div>
                         <Badge variant="outline" className="rounded-full border-emerald-100 text-emerald-600 text-[10px] font-black uppercase">Receita</Badge>
                     </div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Receita Bruto do Show</p>
-                    <p className="text-3xl font-black text-slate-900 italic mt-1 tabular-nums">
+                    <p className="text-3xl font-black text-slate-100 italic mt-1 tabular-nums">
+
                         {formatCurrency(dre.receitaBruta)}
                     </p>
                 </Card>
 
-                <Card className="rounded-[2.5rem] bg-white border-slate-100 p-8 shadow-sm group hover:border-rose-200 transition-all">
+                <Card className="rounded-[2.5rem] glass-card p-8 shadow-xl group hover:border-rose-500/30 transition-all">
+
                     <div className="flex items-center justify-between mb-4">
-                        <div className="bg-rose-50 p-3 rounded-2xl group-hover:scale-110 transition-transform">
+                        <div className="bg-rose-500/10 p-3 rounded-2xl group-hover:scale-110 transition-transform">
+
                             <TrendingDown className="h-6 w-6 text-rose-600" />
                         </div>
                         <Badge variant="outline" className="rounded-full border-rose-100 text-rose-600 text-[10px] font-black uppercase">Consumo</Badge>
@@ -137,10 +142,12 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
             </div>
 
             {/* Tabela DRE Estilizada */}
-            <Card className="rounded-[2.5rem] border-slate-100 p-8 shadow-sm bg-white overflow-hidden">
+            <Card className="rounded-[2.5rem] border-white/5 p-8 shadow-2xl glass-card overflow-hidden">
+
                 <div className="flex items-center gap-2 mb-8">
                     <PieChart className="h-5 w-5 text-indigo-600" />
-                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Demonstrativo de Resultados (DRE)</h3>
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-100 italic">Demonstrativo de Resultados (DRE)</h3>
+
                 </div>
 
                 <div className="overflow-x-auto">
@@ -205,7 +212,8 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
                                 dre.lucroLiquido >= 0 ? "bg-emerald-50/50" : "bg-rose-50/50"
                             )}>
                                 <TableCell className="py-6 px-6">
-                                    <p className="text-sm font-black uppercase italic tracking-widest text-slate-900">Resultado Final Líquido</p>
+                                    <p className="text-sm font-black uppercase italic tracking-widest text-slate-100">Resultado Final Líquido</p>
+
                                     <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Sincronizado com fechamento de caixa</p>
                                 </TableCell>
                                 <TableCell className={cn(
@@ -224,18 +232,21 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
             <Card className="rounded-[2.5rem] border-slate-100 p-8 shadow-sm bg-slate-50/50">
                 <div className="flex items-center gap-2 mb-6">
                     <AlertTriangle className="h-5 w-5 text-indigo-600" />
-                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Distribuição de Comissões</h3>
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-100 italic">Distribuição de Comissões</h3>
+
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white p-6 rounded-3xl border border-slate-100 space-y-2">
+                    <div className="glass-morphism p-6 rounded-3xl border border-white/10 space-y-2">
+
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Comissão sobre Bruto (Geral)</p>
                         <div className="flex justify-between items-end">
                             <p className="text-xl font-black text-slate-900 italic">{formatCurrency(dre.comissoes)}</p>
                             <Badge className="bg-indigo-100 text-indigo-700 border-0 text-[9px] font-black uppercase">10% Base Bruta</Badge>
                         </div>
                     </div>
-                    <div className="bg-white p-6 rounded-3xl border border-slate-100 space-y-2 opacity-50 grayscale">
+                    <div className="glass-morphism p-6 rounded-3xl border border-white/5 space-y-2 opacity-40 grayscale translate-y-1">
+
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Comissão sobre Líquido</p>
                         <div className="flex justify-between items-end">
                             <p className="text-xl font-black text-slate-900 italic">{formatCurrency(0)}</p>

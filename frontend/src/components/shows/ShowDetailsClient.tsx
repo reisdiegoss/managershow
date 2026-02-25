@@ -209,14 +209,17 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
     return (
         <div className="flex flex-col space-y-6">
             {/* Header Premium (Hero Section) */}
-            <div className="rounded-[2.5rem] bg-white border border-slate-100 p-8 shadow-sm">
+            <div className="rounded-[2.5rem] glass-card p-8 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2" />
+
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-4">
                         <Link href="/agenda" className="flex items-center text-xs font-black uppercase tracking-widest text-indigo-600 hover:opacity-70 transition-all">
                             <ChevronLeft className="mr-1 h-3 w-3" /> Voltar para Agenda
                         </Link>
                         <div className="space-y-1">
-                            <h1 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900 leading-none">
+                            <h1 className="text-4xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">
+
                                 {show.artist_id} <span className="text-indigo-600">Global Tour</span>
                             </h1>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-500">
@@ -232,7 +235,8 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                         </Badge>
                         <div className="space-y-1">
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cachê Base</p>
-                            <p className="text-2xl font-black text-slate-900 italic">R$ {show.base_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-2xl font-black text-slate-100 italic">R$ {show.base_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+
                         </div>
                         <div className="h-6">
                             <ProfitLight score={85} message="Viabilidade Confirmada" />
@@ -257,8 +261,10 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                 <TabsContent value="overview" className="pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="md:col-span-2 space-y-6">
-                            <div className="rounded-3xl bg-white border border-slate-100 p-8 shadow-sm">
-                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 mb-6 italic">Detalhes da Negociação</h3>
+                            <div className="rounded-3xl glass-card p-8 shadow-xl">
+
+                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-100 mb-6 italic">Detalhes da Negociação</h3>
+
                                 <div className="grid grid-cols-2 gap-8">
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tipo de Contratante</p>
@@ -291,10 +297,12 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                 <TabsContent value="contract" className="pt-6">
                     <div className="space-y-6">
                         {/* Seção de Documentos Dinâmicos */}
-                        <div className="rounded-3xl bg-white border border-slate-100 p-8 shadow-sm space-y-6">
+                        <div className="rounded-3xl glass-card p-8 shadow-xl space-y-6">
+
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
-                                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Documentos e Propostas</h3>
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-100 italic">Documentos e Propostas</h3>
+
                                     <p className="text-xs text-slate-500">Selecione um template dinâmico para gerar o documento com os dados do show.</p>
                                 </div>
                                 <Link href="/templates">
@@ -309,9 +317,11 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                         </div>
 
                         {/* Seção de Upload de Contrato Assinado (Legado / Processo de Validação) */}
-                        <div className="rounded-3xl bg-white border border-slate-100 p-8 shadow-sm space-y-8">
+                        <div className="rounded-3xl glass-card p-8 shadow-xl space-y-8">
+
                             <div className="space-y-2">
-                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Finalização Jurídica</h3>
+                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-100 italic">Finalização Jurídica</h3>
+
                                 <p className="text-xs text-slate-500">Anexe o contrato assinado para validar a etapa e liberar a logística.</p>
                             </div>
 

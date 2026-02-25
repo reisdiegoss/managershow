@@ -212,7 +212,8 @@ export function KanbanBoard({ currentDate }: { currentDate: Date }) {
                                     ))}
 
                                     {/* Botão de Adição Rápida */}
-                                    <button className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 p-6 transition-all hover:border-indigo-300 hover:bg-white group">
+                                    <button className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/5 p-6 transition-all hover:border-indigo-500/30 hover:bg-white/5 group">
+
                                         <Plus className="h-4 w-4 text-slate-400 group-hover:text-indigo-500" />
                                         <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400 group-hover:text-indigo-500 italic">
                                             Novo Show

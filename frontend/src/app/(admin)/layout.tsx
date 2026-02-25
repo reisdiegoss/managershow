@@ -25,11 +25,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const pathname = usePathname();
 
     return (
-        <div className="flex h-screen w-full overflow-hidden bg-slate-50 text-slate-900">
+        <div className="flex h-screen w-full overflow-hidden bg-transparent admin-theme text-slate-200">
+
             {/* Admin Sidebar */}
-            <aside className="w-64 flex flex-col bg-slate-950 text-white shadow-2xl">
+            <aside className="w-64 flex flex-col border-r border-white/5 glass-card shadow-2xl z-20">
                 {/* Admin Header */}
-                <div className="flex items-center gap-3 border-b border-white/5 p-6 bg-slate-900/40">
+                <div className="flex items-center gap-3 border-b border-white/5 p-6 bg-emerald-500/5">
+
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 shadow-lg shadow-emerald-500/20">
                         <ShieldCheck className="h-6 w-6 text-slate-950" />
                     </div>
@@ -65,14 +67,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </nav>
 
                 {/* Admin Footer */}
-                <div className="p-4 border-t border-white/5 bg-slate-900/20">
+                <div className="p-4 border-t border-white/5 bg-white/5">
+
                     <Link
                         href="/"
                         className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 hover:bg-slate-900 hover:text-white transition-all text-[10px] font-bold uppercase tracking-widest"
                     >
                         <LogOut size={16} /> Voltar ao App
                     </Link>
-                    <div className="mt-4 p-2 rounded-xl bg-white/5 border border-white/5">
+                    <div className="mt-4 p-2 rounded-xl glass-morphism border border-white/5">
+
                         <UserButton afterSignOutUrl="/sign-in" showName />
                     </div>
                 </div>
@@ -80,11 +84,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Admin Content */}
             <main className="flex-1 flex flex-col overflow-hidden">
-                <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 shadow-sm">
+                <header className="h-20 border-b border-white/5 flex items-center justify-between px-10 glass-morphism z-10">
+
                     <div>
-                        <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-800">
-                            Painel de <span className="text-emerald-600">Controle</span>
+                        <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-100">
+                            Painel de <span className="text-emerald-500">Controle</span>
                         </h2>
+
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Acesso de Gestão Centralizada</p>
                     </div>
 
@@ -100,7 +106,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-10 bg-slate-50/50">
+                <div className="flex-1 overflow-y-auto p-10">
+
                     {children}
                 </div>
             </main>
