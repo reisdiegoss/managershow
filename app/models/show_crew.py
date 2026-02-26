@@ -17,6 +17,7 @@ class ShowCrew(Base, TenantMixin):
     crew_member_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("artist_crews.id", ondelete="CASCADE"), nullable=False, index=True)
     
     # Smart Share / Read Receipt
+    token: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), default=uuid.uuid4, unique=True, index=True)
     read_receipt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

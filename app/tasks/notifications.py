@@ -81,8 +81,8 @@ async def notify_crew_about_daysheet(show_id: str, tenant_id: str):
                         await db.commit()
                         await db.refresh(assignment)
 
-                    # --- Geração do Link com Rastreador (Param 'm') ---
-                    magic_link = f"https://managershow.vimasistemas.com.br/daysheet/{show_id}?m={member.id}"
+                    # --- Geração do Link com Rastreador (Param 'token') ---
+                    magic_link = f"https://managershow.vimasistemas.com.br/daysheet/{show_id}?token={assignment.token}"
                     
                     message = (
                         f"Olá {member.name.split()[0]}, o roteiro do show em {show.location_city} "

@@ -60,17 +60,17 @@ async def get_public_daysheet(
         "member_context": {"id": m_id} if m_id else None
     }
 
-@router.post("/read")
+@router.get("/crew/{token}/read")
 async def register_read_receipt(
-    payload: ReadReceiptUpdate,
+    token: uuid.UUID,
     db: AsyncSession = Depends(get_async_db)
 ):
     """
-    Registra que o músico visualizou o roteiro.
+    Endpoint silencioso (Pixel/Async Hook) que marca o roteiro como LIDO (Smart Share).
+    Retorna apenas um 200 OK ou Status de tracker para não quebrar navegadores se acessada por IMG SRC.
     """
     stmt = update(ShowCrew).where(
-        ShowCrew.show_id == payload.show_id,
-        ShowCrew.crew_member_id == payload.member_id
+        ShowCrew.token == token
     ).values(
         read_receipt=True,
         read_at=datetime.now()
@@ -80,8 +80,7 @@ async def register_read_receipt(
     await db.commit()
 
     if result.rowcount == 0:
-        # Se não existir vínculo, podemos criar um on-the-fly ou retornar erro.
-        # Por segurança, vamos apenas retornar sucesso para não quebrar o front.
-        return {"status": "ignored", "reason": "No matching assignment found"}
+        # Silencioso, sem necessidade de explodir exception na View Publica caso token seja old.
+        return {"status": "ignored"}
 
-    return {"status": "success"}
+    return {"status": "success", "read_at": datetime.now().isoformat()}

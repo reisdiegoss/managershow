@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "@/components/ui/toaster";
+import { DatabaseProvider } from "@/components/providers/DatabaseProvider";
 
 export default function RootLayout({
   children,
@@ -29,7 +30,9 @@ export default function RootLayout({
           <link rel="apple-touch-icon" href="/icon-192x192.png" />
         </head>
         <body className={`${inter.className} antialiased selection:bg-indigo-500/30`}>
-          {children}
+          <DatabaseProvider>
+            {children}
+          </DatabaseProvider>
           <Toaster />
         </body>
       </html>

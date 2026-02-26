@@ -1,61 +1,90 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
-import { CheckCircle2, Circle, Loader2, UserCheck } from 'lucide-react'
+import React, { useState } from 'react'
+import { CheckCircle2, Circle, Loader2, UserCheck, RefreshCw, Wifi, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { database } from '@/lib/db'
+import { sync } from '@/lib/db/syncService'
 import { Q } from '@nozbe/watermelondb'
+import withObservables from '@nozbe/with-observables'
 import ShowCheckin from '@/lib/db/models/ShowCheckin'
 import { useToast } from '@/components/ui/use-toast'
+import { useApi } from '@/lib/api'
 
 interface CheckInListProps {
     showId: string
+    checkins: ShowCheckin[]
 }
 
-export function CheckInList({ showId }: CheckInListProps) {
-    const [checkins, setCheckins] = useState<ShowCheckin[]>([])
-    const [loading, setLoading] = useState(true)
+const BaseCheckInList = ({ showId, checkins }: CheckInListProps) => {
     const { toast } = useToast()
+    const { api } = useApi()
+    const [isSyncing, setIsSyncing] = useState(false)
+    const [isOffline, setIsOffline] = useState(!navigator.onLine)
 
-    // Busca inicial e observação de mudanças locais
-    useEffect(() => {
-        const query = database.get<ShowCheckin>('show_checkins').query(
-            Q.where('show_id', showId)
-        )
+    // Monitoramento simples de rede para UI Feedback (pode ser movido para hook global depois)
+    React.useEffect(() => {
+        const handleOnline = () => setIsOffline(false)
+        const handleOffline = () => setIsOffline(true)
+        window.addEventListener('online', handleOnline)
+        window.addEventListener('offline', handleOffline)
+        return () => {
+            window.removeEventListener('online', handleOnline)
+            window.removeEventListener('offline', handleOffline)
+        }
+    }, [])
 
-        const subscription = query.observe().subscribe(data => {
-            setCheckins(data)
-            setLoading(false)
-        })
+    const handleSync = async () => {
+        if (isOffline) {
+            toast({
+                title: "Sem conexão",
+                description: "Não é possível sincronizar enquanto estiver offline.",
+                variant: "destructive"
+            })
+            return
+        }
 
-        return () => subscription.unsubscribe()
-    }, [showId])
+        setIsSyncing(true)
+        try {
+            await sync(api)
+            toast({
+                title: "Sincronizado",
+                description: "Dados enviados para a nuvem.",
+            })
+        } catch (err) {
+            toast({
+                title: "Erro de Sincronização",
+                description: "Tente novamente mais tarde.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSyncing(false)
+        }
+    }
 
     const toggleCheckIn = async (userId: string, currentStatus: boolean) => {
         try {
-            if (currentStatus) {
-                // Remover check-in
-                const existing = checkins.find(c => c.userId === userId)
-                if (existing) {
-                    await database.write(async () => {
+            await database.write(async () => {
+                if (currentStatus) {
+                    // Remover check-in
+                    const existing = checkins.find(c => c.userId === userId)
+                    if (existing) {
                         await existing.markAsDeleted() // Destruição lógica para sincronização
-                    })
-                }
-            } else {
-                // Criar novo check-in
-                await database.write(async () => {
+                    }
+                } else {
+                    // Criar novo check-in
                     await database.get<ShowCheckin>('show_checkins').create(record => {
                         record.showId = showId
                         record.userId = userId
                         record.checkedInAt = Date.now()
                         record.dynamicData = JSON.stringify({ source: 'mobile_offline' })
                     })
-                })
-            }
+                }
+            })
 
             toast({
-                title: currentStatus ? "Saída Registrada" : "Presença Confirmada",
-                description: "Status atualizado localmente.",
+                title: currentStatus ? "Saída Registrada" : "Presença Confirmada (Offline)",
+                description: "Status atualizado localmente. Será sincronizado.",
             })
         } catch (err) {
             toast({
@@ -66,15 +95,33 @@ export function CheckInList({ showId }: CheckInListProps) {
         }
     }
 
-    if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
-
     return (
         <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-6">
-                <UserCheck className="w-5 h-5 text-amber-500" />
-                <h3 className="font-black uppercase tracking-tighter text-lg italic">
-                    Check-in <span className="text-slate-400">da Equipe</span>
-                </h3>
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-amber-500" />
+                    <h3 className="font-black uppercase tracking-tighter text-lg italic">
+                        Check-in <span className="text-slate-400">da Equipe</span>
+                    </h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    {/* Status de Rede */}
+                    <div className={`p-2 rounded-full ${isOffline ? 'bg-rose-500/10' : 'bg-emerald-500/10'}`}>
+                        {isOffline ? <WifiOff className="w-4 h-4 text-rose-500" /> : <Wifi className="w-4 h-4 text-emerald-500" />}
+                    </div>
+                    {/* Botão de Sync Manual */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSync}
+                        disabled={isSyncing || isOffline}
+                        className="rounded-full shadow-sm text-xs font-bold uppercase"
+                    >
+                        <RefreshCw className={`w-3 h-3 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                        Sync {checkins.length > 0 && `(${checkins.length})`}
+                    </Button>
+                </div>
             </div>
 
             <div className="grid gap-2">
@@ -111,3 +158,10 @@ export function CheckInList({ showId }: CheckInListProps) {
         </div>
     )
 }
+
+// O componente se inscreve na query para ser re-renderizado sempre que os dados mudarem
+export const CheckInList = withObservables(['showId'], ({ showId }: { showId: string }) => ({
+    checkins: database.get<ShowCheckin>('show_checkins').query(
+        Q.where('show_id', showId)
+    )
+}))(BaseCheckInList)

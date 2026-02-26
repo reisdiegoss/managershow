@@ -16,6 +16,8 @@ import {
 import { publicApi } from '@/lib/public-api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ActiveRouteMap } from '@/components/shows/ActiveRouteMap';
+import { WeatherWidget } from '@/components/shows/WeatherWidget';
 
 interface TimelineItem {
     id: string;
@@ -43,7 +45,7 @@ export default function PublicDaySheetPage() {
     const params = useParams();
     const searchParams = useSearchParams();
     const showId = params.showId as string;
-    const memberId = searchParams.get('m');
+    const token = searchParams.get('token');
 
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<DaySheetData | null>(null);
@@ -58,12 +60,12 @@ export default function PublicDaySheetPage() {
     const loadDaySheet = async () => {
         try {
             setLoading(true);
-            const response = await publicApi.get(`/public/daysheet/${showId}?m=${memberId || ''}`);
+            const response = await publicApi.get<DaySheetData>(`/public/daysheet/${showId}`);
             setData(response.data);
 
-            // Registrar leitura automaticamente se houver ID de membro
-            if (memberId && !readRegistered) {
-                await registerRead(showId, memberId);
+            // Registrar leitura automaticamente se houver token
+            if (token && !readRegistered) {
+                await registerRead(token);
             }
         } catch (error) {
             console.error("Erro ao carregar roteiro:", error);
@@ -72,15 +74,14 @@ export default function PublicDaySheetPage() {
         }
     };
 
-    const registerRead = async (sId: string, mId: string) => {
+    const registerRead = async (trackerToken: string) => {
         try {
-            await publicApi.post('/public/daysheet/read', {
-                show_id: sId,
-                member_id: mId
-            });
-            setReadRegistered(true);
+            const response = await publicApi.get<{ status: string }>(`/public/crew/${trackerToken}/read`);
+            if (response.data.status === 'success') {
+                setReadRegistered(true);
+            }
         } catch (error) {
-            console.error("Erro ao registrar leitura:", error);
+            console.error("Rastreador falhou (Silencioso)", error);
         }
     };
 
@@ -137,8 +138,18 @@ export default function PublicDaySheetPage() {
                 </div>
             </header>
 
+            {/* Embed Map Integration */}
+            <div className="px-4 mt-6">
+                <ActiveRouteMap
+                    address="Centro"
+                    city={data.show.city}
+                    uf={data.show.uf}
+                    className="h-48"
+                />
+            </div>
+
             {/* Info Cards Rápidos */}
-            <div className="grid grid-cols-2 gap-3 px-4 -mt-8 relative z-20">
+            <div className="grid grid-cols-2 gap-3 px-4 mt-6 relative z-20">
                 <div className="rounded-2xl bg-slate-900/80 border border-white/5 p-4 backdrop-blur-xl shadow-xl">
                     <div className="flex items-center gap-2 text-slate-500 mb-2">
                         <Calendar className="h-4 w-4 text-emerald-500" />
@@ -149,16 +160,10 @@ export default function PublicDaySheetPage() {
                     </p>
                 </div>
 
-                <div className="rounded-2xl bg-slate-900/80 border border-white/5 p-4 backdrop-blur-xl shadow-xl">
-                    <div className="flex items-center gap-2 text-slate-500 mb-2">
-                        <CloudRain className="h-4 w-4 text-emerald-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Clima</span>
-                    </div>
-                    <p className="text-lg font-black text-white italic">
-                        {data.weather.temp ? `${Math.round(data.weather.temp)}°C` : '--'}
-                        <span className="ml-1 text-[10px] text-slate-400 lowercase font-medium">({data.weather.condition || 'Sem info'})</span>
-                    </p>
-                </div>
+                <WeatherWidget
+                    temp={data.weather.temp}
+                    condition={data.weather.condition}
+                />
             </div>
 
             {/* Timeline Principal */}
