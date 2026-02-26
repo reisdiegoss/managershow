@@ -96,3 +96,5 @@ class Tenant(TimestampMixin, Base):
 
     def __repr__(self) -> str:
         return f"<Tenant(id={self.id}, name='{self.name}', status={self.status.value})>"
+
+
