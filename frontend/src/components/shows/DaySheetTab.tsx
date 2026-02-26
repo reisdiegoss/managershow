@@ -45,6 +45,7 @@ export function DaySheetTab({ showId, artistName, date, city }: DaySheetTabProps
     const { toast } = useToast();
     const { api } = useApi();
     const [isPublishing, setIsPublishing] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const handlePublish = async () => {
         setIsPublishing(true);
@@ -63,6 +64,30 @@ export function DaySheetTab({ showId, artistName, date, city }: DaySheetTabProps
             });
         } finally {
             setIsPublishing(false);
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        setIsDownloading(true);
+        try {
+            const response = await api.get(`/client/shows/${showId}/daysheet/pdf`, {
+                responseType: 'blob',
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Roteiro_${city}_${showId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+        } catch (error) {
+            toast({
+                title: "Erro no Download",
+                description: "Falha ao gerar o PDF do roteiro pelo Motor Jinja2.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -128,10 +153,15 @@ export function DaySheetTab({ showId, artistName, date, city }: DaySheetTabProps
                             <Share2 className="mr-2 h-4 w-4" /> Partilhar
                         </Button>
                         <Button
-                            onClick={() => handleAction("Geração de PDF do Roteiro")}
+                            onClick={handleDownloadPDF}
+                            disabled={isDownloading}
                             className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest px-6 shadow-lg shadow-indigo-500/20"
                         >
-                            <Download className="mr-2 h-4 w-4" /> Baixar PDF
+                            {isDownloading ? (
+                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Gerando...</>
+                            ) : (
+                                <><Download className="mr-2 h-4 w-4" /> Baixar PDF</>
+                            )}
                         </Button>
                     </div>
                 </div>

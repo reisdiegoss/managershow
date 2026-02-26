@@ -53,6 +53,71 @@ async def get_daysheet(
     }
 
 
+@router.get("/{show_id}/pdf", summary="Download Day Sheet PDF")
+async def download_daysheet_pdf(
+    show_id: uuid.UUID,
+    db: DbSession,
+    tenant_id: TenantId,
+) -> dict:
+    from fastapi.responses import Response
+    from app.services.pdf_service import generate_pdf_from_string
+    import jinja2
+    from pathlib import Path
+    import os
+
+    # 1. Busca os Dados Reais do Day Sheet (Mesma inteligência do endpoint GET principal)
+    stmt = tenant_query(Show, tenant_id).where(Show.id == show_id)
+    result = await db.execute(stmt)
+    show = result.scalar_one_or_none()
+    if not show:
+        raise ShowNotFoundException(show_id)
+
+    # 2. Busca Clima pra Passar no Context (Mesma lógica Inteligente)
+    weather_data = {"temp": None, "condition": None}
+    if show.location_city:
+        from app.services.logistics_service import LogisticsService
+        weather_data = await LogisticsService.get_weather_forecast(
+            show.location_city, 
+            show.date_show.isoformat() if show.date_show else ""
+        )
+
+    # 3. Busca a Timeline Logística
+    timeline_stmt = (
+        tenant_query(LogisticsTimeline, tenant_id)
+        .where(LogisticsTimeline.show_id == show_id)
+        .order_by(LogisticsTimeline.order, LogisticsTimeline.time)
+    )
+    timeline_result = await db.execute(timeline_stmt)
+    items = timeline_result.scalars().all()
+
+    # 4. Compila no Jinja2
+    template_dir = Path("app/templates")
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(template_dir)), autoescape=jinja2.select_autoescape(['html', 'xml']))
+    try:
+        template = env.get_template("daysheet_pdf.html")
+    except jinja2.TemplateNotFound:
+        raise HTTPException(status_code=500, detail="Template de Roteiro_pdf não encontrada.")
+
+    context = {
+        "show": show,
+        "weather": weather_data,
+        "timeline": items
+    }
+    
+    html_content = template.render(**context)
+
+    # 5. Converte para Binário usando a Factory do pdf_service
+    pdf_bytes = generate_pdf_from_string(html_content)
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="Roteiro_{show.location_city}_{show_id}.pdf"'
+        },
+    )
+
+
 @router.post(
     "/items",
     summary="Add Timeline Item",
