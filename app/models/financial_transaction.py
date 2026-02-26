@@ -17,8 +17,9 @@ REGRA DO SPECS.md:
 
 import enum
 import uuid
+from datetime import date
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Numeric, String, Text
+from sqlalchemy import Boolean, Date, Enum, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,6 +35,14 @@ class TransactionType(str, enum.Enum):
     COMMISSION = "COMMISSION"           # Comissões
     KICKBACK = "KICKBACK"               # Retorno/Produção (Prefeituras)
     EXTRA_EXPENSE = "EXTRA_EXPENSE"     # Despesas extras (Etapa 5 - Estrada)
+
+
+class PublicPaymentStatus(str, enum.Enum):
+    """Ciclo de pagamento para mercado público (Prefeituras)."""
+    PENDING_EMPENHO = "PENDING_EMPENHO" # Aguardando Nota de Empenho
+    EMPENHADO = "EMPENHADO"             # Empenhado (Garantido pelo governo)
+    LIQUIDADO = "LIQUIDADO"             # Liquidado (Aguardando ordem bancária)
+    PAGO = "PAGO"                       # Pago (Atesto)
 
 
 class TransactionCategory(str, enum.Enum):
@@ -144,6 +153,28 @@ class FinancialTransaction(TenantMixin, TimestampMixin, Base):
         server_default="false",
         nullable=False,
         comment="Flag que indica se a transação foi gerada automaticamente pelo sistema (ex: Parser de Equipe)",
+    )
+
+    # --- Mercado Público (Fase 26) ---
+    public_payment_status: Mapped[PublicPaymentStatus | None] = mapped_column(
+        Enum(PublicPaymentStatus, name="public_payment_status"),
+        nullable=True,
+        comment="Status do ciclo de empenho (apenas para mercado público)",
+    )
+    empenho_date: Mapped[date | None] = mapped_column(
+        Date,
+        nullable=True,
+        comment="Data da nota de empenho",
+    )
+    empenho_number: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment="Número da nota de empenho",
+    )
+    liquidation_date: Mapped[date | None] = mapped_column(
+        Date,
+        nullable=True,
+        comment="Data da liquidação",
     )
 
     # --- Relacionamentos ---

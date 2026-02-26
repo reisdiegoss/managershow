@@ -475,12 +475,15 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                 </TabsContent>
 
                 <TabsContent value="roteiro" className="pt-6">
-                    <DaySheetTab
-                        showId={showId}
-                        artistName={show.artist_id}
-                        date={show.date_show}
-                        city={show.location_city}
-                    />
+                    {/* Aba de Estrada (Day Sheet + Timeline) */}
+                    <DaySheetTab show={show} />
+
+                    {/* Nova Seção: Comprovação Fiscal (Apenas para Mercado Público/Show Finalizado) */}
+                    {(show.client_type === 'PUBLIC' || show.status === 'DONE') && (
+                        <div className="mt-8">
+                            <ExecutionMediaGallery showId={showId} initialMedia={show.execution_media || []} />
+                        </div>
+                    )}
                 </TabsContent>
 
                 <TabsContent value="equipe" className="pt-6">

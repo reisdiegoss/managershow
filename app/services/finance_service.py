@@ -58,6 +58,10 @@ class DREResult:
     # Receita
     valor_nota_fiscal: Decimal
     receita_bruta_cache: Decimal
+    
+    # Mercado Público (Fase 26)
+    valor_empenhado: Decimal = Decimal("0")
+    valor_liquidado: Decimal = Decimal("0")
 
     # Deduções
     impostos: Decimal
@@ -138,15 +142,30 @@ async def calculate_dre(
     custos_producao = Decimal("0")
     custos_colocacao = Decimal("0")
     custos_extras = Decimal("0")
+    
+    # --- Mercado Público (Fase 26) ---
+    valor_empenhado = Decimal("0")
+    valor_liquidado = Decimal("0")
+
+    from app.models.financial_transaction import PublicPaymentStatus
 
     for tx in transactions:
         amount = Decimal(str(tx.realized_amount))
+        
+        # Lógica de Custos
         if tx.type == TransactionType.PRODUCTION_COST:
             custos_producao += amount
         elif tx.type == TransactionType.LOGISTICS_COST:
             custos_colocacao += amount
         elif tx.type == TransactionType.EXTRA_EXPENSE:
             custos_extras += amount
+            
+        # Lógica de Empenho (Receitas)
+        if tx.type == TransactionType.REVENUE:
+            if tx.public_payment_status == PublicPaymentStatus.EMPENHADO:
+                valor_empenhado += amount
+            elif tx.public_payment_status == PublicPaymentStatus.LIQUIDADO:
+                valor_liquidado += amount
 
     total_custos = custos_producao + custos_colocacao + custos_extras
 
@@ -213,6 +232,8 @@ async def calculate_dre(
         status="CONSOLIDADO" if show.road_closed else "PROVISÓRIO",
         valor_nota_fiscal=valor_nota,
         receita_bruta_cache=receita_bruta,
+        valor_empenhado=valor_empenhado,
+        valor_liquidado=valor_liquidado,
         impostos=impostos,
         tax_percentage=tax_pct,
         repasse_producao=repasse_producao,

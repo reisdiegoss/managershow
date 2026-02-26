@@ -293,3 +293,65 @@ async def update_show(
     await db.flush()
     await db.refresh(show)
     return show
+@router.post("/{show_id}/execution-media", status_code=201)
+async def upload_execution_media(
+    show_id: uuid.UUID,
+    db: DbSession,
+    tenant_id: TenantId,
+    files: list[UploadFile] = File(...),
+) -> dict:
+    """
+    Upload múltiplo de fotos/vídeos de comprovação de execução do show.
+    Valida Magic Bytes (apenas imagem e mp4).
+    """
+    from app.services.s3_service import S3Service
+    from app.models.show_execution_media import ShowExecutionMedia
+
+    stmt = select(Show).where(Show.id == show_id, Show.tenant_id == tenant_id)
+    result = await db.execute(stmt)
+    show = result.scalar_one_or_none()
+
+    if not show:
+        raise HTTPException(status_code=404, detail="Show não encontrado")
+
+    allowed_types = ["image/jpeg", "image/png", "image/webp", "video/mp4"]
+    results = []
+    errors = []
+
+    for file in files:
+        try:
+            # Validação básica de tipo
+            if file.content_type not in allowed_types:
+                errors.append({"file": file.filename, "error": f"Tipo {file.content_type} não permitido"})
+                continue
+
+            content = await file.read()
+            url = await S3Service.upload_file(
+                file_content=content,
+                filename=file.filename,
+                content_type=file.content_type
+            )
+
+            media = ShowExecutionMedia(
+                tenant_id=tenant_id,
+                show_id=show_id,
+                media_url=url,
+                media_type=file.content_type,
+                filename=file.filename
+            )
+            db.add(media)
+            results.append({"filename": file.filename, "url": url})
+        except Exception as e:
+            errors.append({"file": file.filename, "error": str(e)})
+
+    await db.flush()
+
+    if errors:
+        # Se houver erros, retorna 207 Multi-Status conforme diretriz
+        return {
+            "status": "partial_success" if results else "error",
+            "uploaded": results,
+            "failed": errors
+        }
+
+    return {"status": "success", "uploaded": results}

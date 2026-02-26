@@ -103,6 +103,17 @@ export const useApi = () => {
         return api.get('/retaguarda/tenants');
     };
 
+    /**
+     * Upload múltiplo de mídias de comprovação fiscal.
+     */
+    const uploadExecutionMedia = async (showId: string, files: File[]) => {
+        const formData = new FormData();
+        files.forEach(file => formData.append('files', file));
+        return api.post(`/client/shows/${showId}/execution-media`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    };
+
     return {
         api,
         updateShowStatus,
@@ -114,6 +125,7 @@ export const useApi = () => {
         addContractorNote,
         getAdminStats,
         getAdminGrowthChart,
-        getAdminTenants
+        getAdminTenants,
+        uploadExecutionMedia
     };
 };

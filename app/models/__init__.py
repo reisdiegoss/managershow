@@ -41,6 +41,7 @@ from app.models.ticket import Ticket, TicketStatus, TicketPriority, TicketReply
 from app.models.document_template import DocumentTemplate, DocumentEntityType
 from app.models.system_settings import SystemSettings
 from app.models.show_crew import ShowCrew
+from app.models.show_execution_media import ShowExecutionMedia
 from app.models.saas_payment_log import SaaSPaymentLog
 
 __all__ = [

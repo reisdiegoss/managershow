@@ -247,6 +247,11 @@ class Show(TenantMixin, TimestampMixin, Base):
         cascade="all, delete-orphan",
         lazy="raise",
     )
+    execution_media: Mapped[list["ShowExecutionMedia"]] = relationship(  # noqa: F821
+        back_populates="show",
+        cascade="all, delete-orphan",
+        lazy="raise",
+    )
     commissions: Mapped[list["Commission"]] = relationship(  # noqa: F821
         back_populates="show",
         cascade="all, delete-orphan",

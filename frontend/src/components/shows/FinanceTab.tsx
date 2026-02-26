@@ -33,28 +33,28 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
     };
 
     const dre = useMemo(() => {
-        // 1. Receita Bruta
+        // ...
         const receitaBruta = basePrice;
 
-        // 2. Impostos (Simulação de 10% padrão se não houver transação de imposto)
+        // Mercado Público
+        const valorEmpenhado = transactions.filter(t => t.public_payment_status === 'EMPENHADO' && t.type === 'REVENUE').reduce((acc, t) => acc + t.realized_amount, 0);
+        const valorLiquidado = transactions.filter(t => t.public_payment_status === 'LIQUIDADO' && t.type === 'REVENUE').reduce((acc, t) => acc + t.realized_amount, 0);
+
+        // ...
         const impostosTrans = transactions.filter(t => t.category === 'TAX').reduce((acc, t) => acc + t.realized_amount, 0);
         const impostosEstimados = receitaBruta * 0.10;
         const impostos = impostosTrans > 0 ? impostosTrans : impostosEstimados;
 
-        // 3. Custos de Logística & Produção
         const custosLogistica = transactions
             .filter(t => ['FLIGHT', 'HOTEL', 'VAN', 'CATERING', 'TECHNICAL'].includes(t.category))
             .reduce((acc, t) => acc + t.realized_amount, 0);
 
-        // 4. Custos Extras (Lançados na Estrada)
         const custosExtras = transactions
             .filter(t => t.category === 'OTHER')
             .reduce((acc, t) => acc + t.realized_amount, 0);
 
-        // 5. Comissões (Ex: 10% sobre o Bruto)
         const comissoes = receitaBruta * 0.10;
 
-        // Totais
         const totalDespesas = impostos + custosLogistica + custosExtras + comissoes;
         const lucroLiquido = receitaBruta - totalDespesas;
         const margemPercent = (lucroLiquido / receitaBruta) * 100;
@@ -67,7 +67,9 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
             comissoes,
             totalDespesas,
             lucroLiquido,
-            margemPercent
+            margemPercent,
+            valorEmpenhado,
+            valorLiquidado
         };
     }, [basePrice, transactions]);
 
@@ -82,6 +84,34 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
 
     return (
         <div className="space-y-8 pb-12">
+
+            {/* Timeline do Ciclo Público (Se houver empenho) */}
+            {(dre.valorEmpenhado > 0 || dre.valorLiquidado > 0) && (
+                <Card className="rounded-[2.5rem] border-amber-500/20 bg-amber-50/50 p-8 shadow-sm mb-8">
+                    <div className="flex items-center gap-2 mb-6">
+                        <Receipt className="h-5 w-5 text-amber-600" />
+                        <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 italic">Ciclo de Pagamento Público</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className={cn("p-6 rounded-3xl border-2 transition-all", dre.valorEmpenhado > 0 ? "border-amber-400 bg-white" : "border-slate-200 opacity-50")}>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">1. Empenhado</p>
+                            <p className="text-2xl font-black text-amber-600 mt-2">{formatCurrency(dre.valorEmpenhado)}</p>
+                            <p className="text-xs text-slate-400 mt-1">Valor com Nota de Empenho</p>
+                        </div>
+                        <div className={cn("p-6 rounded-3xl border-2 transition-all", dre.valorLiquidado > 0 ? "border-blue-400 bg-white" : "border-slate-200 opacity-50")}>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">2. Liquidado</p>
+                            <p className="text-2xl font-black text-blue-600 mt-2">{formatCurrency(dre.valorLiquidado)}</p>
+                            <p className="text-xs text-slate-400 mt-1">Aguardando Ordem Bancária</p>
+                        </div>
+                        <div className={cn("p-6 rounded-3xl border-2 transition-all", transactions.some(t => t.public_payment_status === 'PAGO') ? "border-emerald-400 bg-white" : "border-slate-200 opacity-50")}>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">3. Pago (Atesto)</p>
+                            <p className="text-2xl font-black text-emerald-600 mt-2">Finalizado</p>
+                            <p className="text-xs text-slate-400 mt-1">Recebimento conciliado</p>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
             {/* Hero Financeiro - Indicadores de Impacto */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="rounded-[2.5rem] glass-card p-8 shadow-xl group hover:border-indigo-500/30 transition-all">
