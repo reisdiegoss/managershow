@@ -157,22 +157,32 @@ async def simulate_viability(
     city: str = Query(...),
     uf: str = Query(..., max_length=2),
     cache: Decimal = Query(..., ge=0),
-    negotiation_type: str = Query(...),
+    negotiation_type: str = Query(None), # Fallback mantido pra não quebrar clientes antigos
+    transport_type: str = Query("AEREO"),
+    flights_count: int = Query(0, ge=0),
+    days_hotel: int = Query(1, ge=1),
 ) -> dict:
     """
-    Simulador de Viabilidade Financeira.
+    Simulador de Viabilidade Financeira (ProfitLight 2.0).
 
-    Busca médias de custo (AVG) de FLIGHT e HOTEL para a cidade
-    nos últimos 12 meses e projeta um DRE provisório.
-
-    Retorna status "VIABLE" (Verde) ou "RISKY" (Vermelho).
-    Toda a matemática está isolada em finance_service.py.
+    Recebe do front as métricas de transporte e hospedagem e repassa ao Motor Financeiro
+    que devolverá uma simulação real baseada no histórico de preços da praça.
     """
     from dataclasses import asdict
 
     from app.services.finance_service import simulate_viability as run_simulation
 
-    result = await run_simulation(db, tenant_id, city, uf, cache)
+    # Chama o service refatorado que aceita as variáveis granulares
+    result = await run_simulation(
+        db=db, 
+        tenant_id=tenant_id, 
+        city=city, 
+        uf=uf, 
+        cache=cache, 
+        transport_type=transport_type, 
+        flights_count=flights_count, 
+        days_hotel=days_hotel
+    )
     return asdict(result)
 
 

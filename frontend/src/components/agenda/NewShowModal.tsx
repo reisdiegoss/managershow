@@ -26,7 +26,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ProfitLight } from "./ProfitLight";
 import { Plus, Calculator, Sparkles } from "lucide-react";
 
-// Schema de validação
+// Schema de validação principal (Apenas campos do Show)
 const showSchema = z.object({
     date_show: z.string().min(1, "Data é obrigatória"),
     location_city: z.string().min(2, "Cidade é obrigatória"),
@@ -45,7 +45,12 @@ export function NewShowModal({ onShowCreated }: { onShowCreated?: () => void }) 
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [simulating, setSimulating] = useState(false);
-    const [simulationResult, setSimulationResult] = useState<{ score: number; message: string } | null>(null);
+    const [simulationResult, setSimulationResult] = useState<{ score: number; message: string; breakdown?: any } | null>(null);
+
+    // Variáveis desamarradas do Form p/ não quebrar a tipagem de submit do Show
+    const [transportType, setTransportType] = useState("AEREO");
+    const [flightsCount, setFlightsCount] = useState(0);
+    const [daysHotel, setDaysHotel] = useState(1);
 
     const { simulateShow, createShow } = useApi();
     const { toast } = useToast();
@@ -66,7 +71,7 @@ export function NewShowModal({ onShowCreated }: { onShowCreated?: () => void }) 
      * Debounce da simulação para não sobrecarregar a API
      */
     useEffect(() => {
-        const { location_city, location_uf, base_price, client_type } = form.getValues();
+        const { location_city, location_uf, base_price, client_type, transport_type, flights_count, days_hotel } = form.getValues();
 
         if (location_city && location_uf && base_price > 0) {
             const timer = setTimeout(async () => {
@@ -76,7 +81,10 @@ export function NewShowModal({ onShowCreated }: { onShowCreated?: () => void }) 
                         location_city,
                         location_uf,
                         base_price,
-                        client_type
+                        client_type,
+                        transport_type,
+                        flights_count,
+                        days_hotel
                     });
                     setSimulationResult(response.data);
                 } catch (error) {
@@ -87,13 +95,17 @@ export function NewShowModal({ onShowCreated }: { onShowCreated?: () => void }) 
             }, 800);
             return () => clearTimeout(timer);
         }
-    }, [watchFields[0], watchFields[1], watchFields[2], watchFields[3]]);
+    }, [watchFields[0], watchFields[1], watchFields[2], watchFields[3], watchFields[4], watchFields[5], watchFields[6]]);
 
-    async function onSubmit(data: ShowFormValues) {
+    async function onSubmit(data: any) {
         try {
             setLoading(true);
+
+            // Filtra os dados granulares para não poluir o create principal caso a API recuse
+            const { transport_type, flights_count, days_hotel, ...createData } = data;
+
             await createShow({
-                ...data,
+                ...createData,
                 status: "SONDAGEM", // Todo show novo entra em sondagem
             });
 
@@ -125,8 +137,8 @@ export function NewShowModal({ onShowCreated }: { onShowCreated?: () => void }) 
                     Nova Ação
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] border-slate-200 bg-white shadow-2xl overflow-hidden p-0">
-                <div className="bg-indigo-600 p-8 text-white relative">
+            <DialogContent className="sm:max-w-[700px] rounded-[2.5rem] border-slate-200 bg-white shadow-2xl overflow-hidden p-0 max-h-[90vh] overflow-y-auto">
+                <div className="bg-indigo-600 p-8 text-white relative flex-shrink-0">
                     <Sparkles className="absolute top-4 right-4 h-12 w-12 text-white/10" />
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">
@@ -139,7 +151,7 @@ export function NewShowModal({ onShowCreated }: { onShowCreated?: () => void }) 
                 </div>
 
                 <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Data do Evento</Label>
                             <Input
@@ -186,7 +198,7 @@ export function NewShowModal({ onShowCreated }: { onShowCreated?: () => void }) 
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Cachê (Base Price)</Label>
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Cachê Líquido (Receita)</Label>
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">R$</span>
                             <Input
@@ -195,6 +207,51 @@ export function NewShowModal({ onShowCreated }: { onShowCreated?: () => void }) 
                                 {...form.register("base_price")}
                                 className="pl-10 rounded-xl border-slate-200 focus:ring-indigo-500"
                             />
+                        </div>
+                    </div>
+
+                    <hr className="border-t border-slate-100 my-6" />
+
+                    <div>
+                        <h4 className="text-sm font-black italic uppercase tracking-tighter text-slate-800 mb-1">Simulador de Viabilidade Granular</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Métricas opcionais para previsão ProfitLight (Logística vs Preço)</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Modalidade</Label>
+                                <Select
+                                    onValueChange={(v) => form.setValue("transport_type", v as any)}
+                                    defaultValue={form.getValues("transport_type")}
+                                >
+                                    <SelectTrigger className="rounded-xl border-slate-200 bg-white shadow-sm">
+                                        <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="AEREO">Aéreo (Avião)</SelectItem>
+                                        <SelectItem value="VAN">Terrestre (Van/Bus)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Qtd. Passagens</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    {...form.register("flights_count")}
+                                    className="rounded-xl border-slate-200 bg-white shadow-sm focus:ring-indigo-500"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Diárias (Hotel/Alim.)</Label>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    {...form.register("days_hotel")}
+                                    className="rounded-xl border-slate-200 bg-white shadow-sm focus:ring-indigo-500"
+                                />
+                            </div>
                         </div>
                     </div>
 

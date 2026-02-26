@@ -95,8 +95,34 @@ async def notify_crew_about_daysheet(show_id: str, tenant_id: str):
                         db=db
                     )
                 except Exception as e:
-                    logger.error(f"[Information Push] Falha ao notificar membro {member.id}: {str(e)}")
-                    continue
+                    logger.error(f"[Information Push] Falha ao notificar membro via WhatsApp {member.id}: {str(e)}")
+
+                try:
+                    # --- NATIVE PUSH: Firebase Cloud Messaging ---
+                    # Além do WhatsApp, envia um Push Notification para todos os Devices (FCM) logados deste membro
+                    from app.models.device_token import DeviceToken
+                    from app.services.fcm_service import FCMService
+
+                    stmt_devices = select(DeviceToken.fcm_token).where(DeviceToken.user_id == member.user_id)
+                    res_devices = await db.execute(stmt_devices)
+                    tokens = res_devices.scalars().all()
+
+                    if tokens:
+                        # Inicializa FCM (noop se já estiver inicializado)
+                        FCMService.initialize()
+
+                        push_title = f"Roteiro Liberado: {show.location_city}"
+                        push_body = f"Toque para visualizar sua passagem e hotel atualizados."
+                        
+                        # Disparo em massa para todos os aparelhos do músico
+                        FCMService.send_multicast_notification(
+                            tokens=list(tokens),
+                            title=push_title,
+                            body=push_body,
+                            data={"show_id": str(show_id), "type": "route_published"}
+                        )
+                except Exception as e:
+                    logger.error(f"[Information Push] Falha ao enviar Native Push (FCM) para {member.id}: {str(e)}")
 
             logger.info(f"[Information Push] Notificações concluídas com sucesso para o show em {show.location_city}.")
             return True

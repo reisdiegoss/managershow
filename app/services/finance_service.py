@@ -266,14 +266,18 @@ async def simulate_viability(
     city: str,
     uf: str,
     cache: Decimal,
+    transport_type: str = "AEREO",
+    flights_count: int = 0,
+    days_hotel: int = 1,
 ) -> SimulationResult:
     """
     Simula viabilidade financeira para uma cidade (BI Real).
 
-    Lógica:
-    1. Busca médias de custos reais em FinancialTransaction para shows passados na cidade.
-    2. Fallback para CityBaseCost (histórico manual/referência) se não houver transações.
-    3. Projeta DRE previsional.
+    Lógica Atualizada (ProfitLight 2.0):
+    1. Recebe do front QTD de passagens (flights_count) e QTD de diárias (days_hotel).
+    2. Busca o PREÇO MÉDIO real em FinancialTransaction ou CityBaseCost (Fallback).
+    3. Multiplica = QTD Passagens * Preço Médio Aeronave + QTD Diárias * Preço Médio Hotel (Fator x 5 quartos).
+    4. Projeta DRE previsional.
     """
     from app.models.financial_transaction import TransactionCategory
     from app.models.show import Show
@@ -313,10 +317,24 @@ async def simulate_viability(
 
     # --- 3. Ponderação: Real tem prioridade sobre Referência ---
     avg_flight = real_flight if real_flight > 0 else ref_flight
+    if avg_flight == Decimal("0"):
+        avg_flight = Decimal("1500.00") # Fallback Brasil
+
     avg_hotel = real_hotel if real_hotel > 0 else ref_hotel
+    if avg_hotel == Decimal("0"):
+        avg_hotel = Decimal("300.00") # Fallback Brasil
+        
+    # --- 4. Quantidade x Preço = Faturamento Logístico ---
+    projected_flight_cost = Decimal("0")
+    if transport_type == "AEREO":
+        projected_flight_cost = Decimal(str(flights_count)) * avg_flight
+
+    # Assumimos em eventos que 1 diária_hotel informada é na verdade um booking médio de 5 quartos duplos (10 heads)
+    rooms_equivalent = Decimal("5.0")
+    projected_hotel_cost = Decimal(str(days_hotel)) * avg_hotel * rooms_equivalent
 
     # Projetar DRE
-    projected_total_cost = avg_flight + avg_hotel
+    projected_total_cost = projected_flight_cost + projected_hotel_cost
     projected_margin = cache - projected_total_cost
     margin_pct = (projected_margin / cache * Decimal("100")) if cache > 0 else Decimal("0")
 
@@ -324,15 +342,13 @@ async def simulate_viability(
     status = "VIABLE" if margin_pct >= 20 else "RISKY"
 
     source = "DADOS REAIS" if (real_flight > 0 or real_hotel > 0) else "REFERÊNCIA"
-    details = f"Simulação baseada em {source} para {city}/{uf}."
-    if avg_flight == 0 and avg_hotel == 0:
-        details = f"Sem histórico de custos para {city}/{uf}. Simulação baseada apenas no cachê."
-
+    details = f"Viabilidade projetada para {flights_count} Voos e {days_hotel} Diárias em {city}/{uf} ({source})."
+    
     return SimulationResult(
         status=status,
         projected_revenue=cache,
-        projected_flight_cost=avg_flight,
-        projected_hotel_cost=avg_hotel,
+        projected_flight_cost=projected_flight_cost,
+        projected_hotel_cost=projected_hotel_cost,
         projected_total_cost=projected_total_cost,
         projected_margin=projected_margin,
         margin_percentage=round(margin_pct, 2),
