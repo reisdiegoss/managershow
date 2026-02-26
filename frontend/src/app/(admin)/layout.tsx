@@ -9,6 +9,7 @@ import {
     Building2,
     LifeBuoy,
     LogOut,
+    MessageSquare,
     ShieldCheck,
     TrendingUp,
     Users
@@ -19,6 +20,7 @@ const adminNavItems = [
     { label: 'Visão Global', icon: LayoutDashboard, href: '/admin' },
     { label: 'Produtoras (Tenants)', icon: Building2, href: '/admin/tenants' },
     { label: 'Suporte Técnico', icon: LifeBuoy, href: '/admin/tickets' },
+    { label: 'Configuração WhatsApp', icon: MessageSquare, href: '/admin/configuracoes/whatsapp' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

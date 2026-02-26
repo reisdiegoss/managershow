@@ -51,18 +51,28 @@ async def notify_crew_about_daysheet(show_id: str, tenant_id: str):
                 logger.warning(f"[Information Push] Nenhum membro de equipe ativo encontrado para o Artista {show.artist_id}")
                 return True
 
-            # 3. Disparo Simulado (Information Push)
+            # 3. Disparo Real via WhatsApp (Information Push)
             # Retira o peso do produtor ser o "mensageiro"
+            from app.services.whatsapp_service import send_whatsapp_message
+
             for member in crew_members:
+                if not member.phone:
+                    logger.warning(f"[Information Push] Membro {member.name} não possui telefone cadastrado.")
+                    continue
+
                 try:
-                    # Geração do Link Mágico (Mock)
+                    # Geração do Link Mágico (Mock) — Em produção viria do front-end
                     magic_link = f"https://app.managershow.com/public/daysheet/{show_id}"
                     
-                    # Log de Logística Ativa
-                    logger.info(
-                        f"[Information Push] Enviando Roteiro para {member.name} ({member.role}) "
-                        f"via WhatsApp: \"Fala {member.name.split()[0]}, o roteiro do show em {show.location_city} "
-                        f"já está liberado! Acesse: {magic_link}\""
+                    message = (
+                        f"Olá {member.name.split()[0]}, o roteiro do show em {show.location_city} "
+                        f"já está liberado! 🚀\n\nAcesse agora: {magic_link}"
+                    )
+
+                    await send_whatsapp_message(
+                        phone=member.phone,
+                        message=message,
+                        db=db
                     )
                 except Exception as e:
                     logger.error(f"[Information Push] Falha ao notificar membro {member.id}: {str(e)}")

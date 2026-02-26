@@ -38,6 +38,7 @@ from app.models.seller import Seller
 from app.models.contractor_note import ContractorNote
 from app.models.ticket import Ticket, TicketStatus, TicketPriority, TicketReply
 from app.models.document_template import DocumentTemplate, DocumentEntityType
+from app.models.system_settings import SystemSettings
 
 __all__ = [
     "Base",
@@ -77,4 +78,5 @@ __all__ = [
     "TicketReply",
     "DocumentTemplate",
     "DocumentEntityType",
+    "SystemSettings",
 ]
