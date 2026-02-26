@@ -226,10 +226,14 @@ async def calculate_dre(
         if receita_bruta > 0 else Decimal("0")
     )
 
+    from app.models.show import ShowStatus
+    
+    is_show_closed = show.status == ShowStatus.CONCLUIDO
+
     return DREResult(
         show_id=str(show.id),
-        is_consolidated=show.road_closed,
-        status="CONSOLIDADO" if show.road_closed else "PROVISÓRIO",
+        is_consolidated=is_show_closed,
+        status="CONSOLIDADO" if is_show_closed else "PROVISÓRIO",
         valor_nota_fiscal=valor_nota,
         receita_bruta_cache=receita_bruta,
         valor_empenhado=valor_empenhado,

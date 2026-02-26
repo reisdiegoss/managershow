@@ -13,7 +13,8 @@ import {
     PieChart,
     AlertTriangle,
     ArrowUpRight,
-    ArrowDownRight
+    ArrowDownRight,
+    CheckCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,10 +22,11 @@ interface FinanceTabProps {
     showId: string;
     basePrice: number;
     transactions: FinancialTransaction[];
+    isConsolidated?: boolean;
     loading?: boolean;
 }
 
-export function FinanceTab({ showId, basePrice, transactions, loading }: FinanceTabProps) {
+export function FinanceTab({ showId, basePrice, transactions, isConsolidated, loading }: FinanceTabProps) {
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -46,7 +48,7 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
         const impostos = impostosTrans > 0 ? impostosTrans : impostosEstimados;
 
         const custosLogistica = transactions
-            .filter(t => ['FLIGHT', 'HOTEL', 'VAN', 'CATERING', 'TECHNICAL'].includes(t.category))
+            .filter(t => ['FLIGHT', 'HOTEL', 'VAN', 'CATERING', 'TECHNICAL'].includes(t.category || ''))
             .reduce((acc, t) => acc + t.realized_amount, 0);
 
         const custosExtras = transactions
@@ -69,9 +71,10 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
             lucroLiquido,
             margemPercent,
             valorEmpenhado,
-            valorLiquidado
+            valorLiquidado,
+            isConsolidated: !!isConsolidated
         };
-    }, [basePrice, transactions]);
+    }, [basePrice, transactions, isConsolidated]);
 
     if (loading) {
         return (
@@ -84,6 +87,36 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
 
     return (
         <div className="space-y-8 pb-12">
+
+            {/* Trava Regra 03 do DRE (Fase 38) */}
+            <div className={cn(
+                "p-6 rounded-[2rem] border-2 shadow-sm flex items-center justify-between transition-all",
+                dre.isConsolidated
+                    ? "bg-emerald-500/10 border-emerald-500/20"
+                    : "bg-amber-500/10 border-amber-500/20"
+            )}>
+                <div className="flex items-center gap-4">
+                    <div className={cn(
+                        "p-4 rounded-full",
+                        dre.isConsolidated ? "bg-emerald-500/20" : "bg-amber-500/20"
+                    )}>
+                        <AlertTriangle className={cn("h-6 w-6", dre.isConsolidated ? "text-emerald-600" : "text-amber-600")} />
+                    </div>
+                    <div>
+                        <h4 className={cn(
+                            "text-sm font-black uppercase tracking-widest italic",
+                            dre.isConsolidated ? "text-emerald-700" : "text-amber-700"
+                        )}>
+                            {dre.isConsolidated ? "DRE Consolidado (Trancado)" : "DRE (Status: PRÉVIA)"}
+                        </h4>
+                        <p className={cn("text-xs mt-1 max-w-lg", dre.isConsolidated ? "text-emerald-600/80" : "text-amber-600/80")}>
+                            {dre.isConsolidated
+                                ? "Este show já teve seu status 'Concluído' ou teve prestação de contas de estrada efetuada. Os números aqui dispostos são faturamento líquido absoluto da agência e não podem ser maquiados."
+                                : "Ainda pendente de conclusão oficial ou fechamento de gastos de estrada. Os valores nesta página refletem a estimativa / prévia de lucros momentânea da agência baseada na precificação."}
+                        </p>
+                    </div>
+                </div>
+            </div>
 
             {/* Timeline do Ciclo Público (Se houver empenho) */}
             {(dre.valorEmpenhado > 0 || dre.valorLiquidado > 0) && (
@@ -123,7 +156,7 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
                         </div>
                         <Badge variant="outline" className="rounded-full border-emerald-100 text-emerald-600 text-[10px] font-black uppercase">Receita</Badge>
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Receita Bruto do Show</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Receita Bruta do Show</p>
                     <p className="text-3xl font-black text-slate-100 italic mt-1 tabular-nums">
 
                         {formatCurrency(dre.receitaBruta)}
@@ -177,7 +210,6 @@ export function FinanceTab({ showId, basePrice, transactions, loading }: Finance
                 <div className="flex items-center gap-2 mb-8">
                     <PieChart className="h-5 w-5 text-indigo-600" />
                     <h3 className="text-sm font-black uppercase tracking-widest text-slate-100 italic">Demonstrativo de Resultados (DRE)</h3>
-
                 </div>
 
                 <div className="overflow-x-auto">

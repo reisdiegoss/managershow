@@ -2,13 +2,7 @@
 
 import React from 'react';
 import {
-    TrendingUp,
-    Users,
-    LifeBuoy,
-    DollarSign,
-    ArrowUpRight,
-    ArrowDownRight,
-    Activity
+    Activity, ArrowDownRight, ArrowUpRight, DollarSign, LifeBuoy, TrendingUp, Users
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -19,20 +13,10 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    AreaChart,
-    Area
 } from 'recharts';
-
-const data = [
-    { name: 'Set', assinaturas: 4, cancelamentos: 1 },
-    { name: 'Out', assinaturas: 7, cancelamentos: 0 },
-    { name: 'Nov', assinaturas: 5, cancelamentos: 2 },
-    { name: 'Dez', assinaturas: 12, cancelamentos: 1 },
-    { name: 'Jan', assinaturas: 18, cancelamentos: 3 },
-    { name: 'Fev', assinaturas: 24, cancelamentos: 2 },
-];
-
 import { useApi } from '@/lib/api';
+import { cn } from '@/lib/utils';
+import { PerformanceChart360 } from '@/components/dashboard/PerformanceChart360';
 
 interface DashboardStats {
     mrr: number;
@@ -78,6 +62,19 @@ export default function AdminDashboardPage() {
 
     return (
         <div className="space-y-10">
+
+            {/* Injeção Nativa do PostgreSQL Cockpit para Analytics do DRE */}
+            <div className="mb-12">
+                <h2 className="text-2xl font-black italic uppercase tracking-tighter text-slate-800 mb-2">Visão Executiva de Produtividade</h2>
+                <p className="text-sm font-bold text-slate-400 mb-6">Receitas Bruta Acumulada contra Despesas Imutáveis de Projetos</p>
+                <PerformanceChart360 />
+            </div>
+
+            <hr className="border-t border-slate-100" />
+
+            <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-800 mb-2 mt-8">Panorama SaaS (Manager Show)</h2>
+            <p className="text-sm font-bold text-slate-400 mb-6">Métricas Administrativas de Agências Integradas no Sistema</p>
+
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
@@ -138,7 +135,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
                 <Card className="lg:col-span-2 rounded-[3rem] border-slate-200/60 shadow-sm p-8">
                     <div className="flex justify-between items-start mb-10">
                         <div>
@@ -220,9 +217,4 @@ export default function AdminDashboardPage() {
             </div>
         </div>
     );
-}
-
-// Auxiliar para Shadcn
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
 }

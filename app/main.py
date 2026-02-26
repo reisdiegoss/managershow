@@ -167,12 +167,14 @@ from app.routers.retaguarda import router as retaguarda_router # noqa: E402
 from app.routers.client import router as client_router # noqa: E402
 from app.routers.public import router as public_router # noqa: E402
 from app.routers.client import sync as client_sync_router # noqa: E402
+from app.routers.client import analytics as client_analytics_router # noqa: E402
 
 app.include_router(public_router)
 app.include_router(retaguarda_router)
 app.include_router(client_router)
 app.include_router(client_users_router.router, prefix="/api/v1/client")
 app.include_router(client_sync_router.router, prefix="/api/v1/client")
+app.include_router(client_analytics_router.router, prefix="/api/v1/client")
 
 
 # =============================================================================
