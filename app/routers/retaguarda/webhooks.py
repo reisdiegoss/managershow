@@ -17,6 +17,7 @@ from sqlalchemy import select
 from app.config import get_settings
 from app.core.dependencies import DbSession
 from app.models.tenant import Tenant, TenantStatus
+from app.models.saas_payment_log import SaaSPaymentLog
 
 router = APIRouter(prefix="/webhooks", tags=["Retaguarda — Webhooks"])
 
@@ -62,7 +63,17 @@ async def asaas_webhook(
 
     print(f"[Asaas Webhook] Processando {event_type} para Tenant: {tenant.name} ({tenant_id}) | Pagamento: {payment_id}")
 
-    # Processar evento de pagamento
+    # 1. Registrar Log de Auditoria
+    log_entry = SaaSPaymentLog(
+        event_type=event_type,
+        payment_id=payment_id,
+        tenant_id=uuid.UUID(tenant_id) if tenant_id else None,
+        amount=payment.get("value") or payment.get("netValue"),
+        payload=body
+    )
+    db.add(log_entry)
+
+    # 2. Processar evento de pagamento
     if event_type in ("PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"):
         # Renovação (Idempotência básica: só renova se não estiver já renovado para este ciclo próximo)
         # Em um cenário real, salvaríamos o 'payment_id' em uma tabela 'Payments' para verificar se já foi processado.

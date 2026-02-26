@@ -34,53 +34,38 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useApi } from '@/lib/api';
 import { SaaSTenant } from '@/types/admin';
-
-const mockTenants: SaaSTenant[] = [
-    {
-        id: '1',
-        name: 'Vima Sistemas & Produções',
-        document: '12.345.678/0001-90',
-        email: 'contato@vima.com.br',
-        status: 'ACTIVE',
-        plan: 'ENTERPRISE',
-        max_users: 50,
-        created_at: '2025-01-10'
-    },
-    {
-        id: '2',
-        name: 'Opus Entretenimento',
-        document: '98.765.432/0001-11',
-        email: 'comercial@opus.com.br',
-        status: 'ACTIVE',
-        plan: 'PRO',
-        max_users: 15,
-        created_at: '2025-05-20'
-    },
-    {
-        id: '3',
-        name: 'G7 Produções Artísticas',
-        document: '44.555.666/0001-22',
-        email: 'atendimento@g7.com',
-        status: 'SUSPENDED',
-        plan: 'STARTER',
-        max_users: 5,
-        created_at: '2026-02-15'
-    },
-    {
-        id: '4',
-        name: 'ShowCase Brasil',
-        document: '11.222.333/0001-44',
-        email: 'diretoria@showcase.com',
-        status: 'TRIAL',
-        plan: 'STARTER',
-        max_users: 5,
-        created_at: '2026-02-22'
-    },
-];
+import { Activity } from 'lucide-react';
 
 export default function TenantsAdminPage() {
-    const [tenants] = useState<SaaSTenant[]>(mockTenants);
+    const { getAdminTenants } = useApi();
+    const [tenants, setTenants] = useState<SaaSTenant[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    React.useEffect(() => {
+        loadTenants();
+    }, []);
+
+    const loadTenants = async () => {
+        try {
+            setLoading(true);
+            const response = await getAdminTenants();
+            setTenants(response.data);
+        } catch (error) {
+            console.error("Erro ao carregar tenants:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex h-[60vh] items-center justify-center">
+                <ShieldCheck className="h-10 w-10 animate-spin text-emerald-500" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">

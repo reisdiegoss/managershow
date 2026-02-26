@@ -163,7 +163,11 @@ async def generic_exception_handler(
 # =============================================================================
 
 from app.routers.client import users as client_users_router # noqa: E402
+from app.routers.retaguarda import router as retaguarda_router # noqa: E402
+from app.routers.client import router as client_router # noqa: E402
+from app.routers.public import router as public_router # noqa: E402
 
+app.include_router(public_router)
 app.include_router(retaguarda_router)
 app.include_router(client_router)
 app.include_router(client_users_router.router, prefix="/api/v1/client")

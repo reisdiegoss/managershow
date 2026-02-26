@@ -262,10 +262,17 @@ class Show(TenantMixin, TimestampMixin, Base):
         cascade="all, delete-orphan",
         lazy="raise",
     )
-    checkin_users: Mapped[list["ShowCheckin"]] = relationship(  # noqa: F821
+    checkin_users: Mapped[list["ShowCheckin"]] = relationship( # noqa: F821
         back_populates="show",
         cascade="all, delete-orphan",
-        lazy="raise",
+        lazy="selectin",
+    )
+
+    crew_assignments: Mapped[list["ShowCrew"]] = relationship( # noqa: F821
+        "ShowCrew",
+        back_populates="show",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     # --- Constantes de Hierarquia de Status ---

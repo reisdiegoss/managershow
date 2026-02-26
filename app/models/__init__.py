@@ -14,6 +14,7 @@ from app.models.user import User
 from app.models.user_artist import UserArtistAccess
 from app.models.role import Role, DEFAULT_PERMISSIONS
 from app.models.artist import Artist
+from app.models.artist_crew import ArtistCrew
 from app.models.show import (
     Show,
     ShowStatus,
@@ -39,6 +40,8 @@ from app.models.contractor_note import ContractorNote
 from app.models.ticket import Ticket, TicketStatus, TicketPriority, TicketReply
 from app.models.document_template import DocumentTemplate, DocumentEntityType
 from app.models.system_settings import SystemSettings
+from app.models.show_crew import ShowCrew
+from app.models.saas_payment_log import SaaSPaymentLog
 
 __all__ = [
     "Base",
@@ -79,4 +82,7 @@ __all__ = [
     "DocumentTemplate",
     "DocumentEntityType",
     "SystemSettings",
+    "ShowCrew",
+    "ArtistCrew",
+    "SaaSPaymentLog",
 ]

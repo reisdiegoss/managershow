@@ -12,6 +12,7 @@ from app.core.celery_utils import async_to_sync
 from app.database import async_session_factory
 from app.models.show import Show
 from app.models.artist_crew import ArtistCrew
+from app.models.show_crew import ShowCrew
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +62,27 @@ async def notify_crew_about_daysheet(show_id: str, tenant_id: str):
                     continue
 
                 try:
-                    # Geração do Link Mágico (Mock) — Em produção viria do front-end
-                    magic_link = f"https://app.managershow.com/public/daysheet/{show_id}"
+                    # --- SMART SHARE: Vinculação de Equipe ---
+                    # Garante que o membro está na tabela de rastreio para este show
+                    stmt_check_assignment = select(ShowCrew).where(
+                        ShowCrew.show_id == show_uuid,
+                        ShowCrew.crew_member_id == member.id
+                    )
+                    res_assignment = await db.execute(stmt_check_assignment)
+                    assignment = res_assignment.scalar_one_or_none()
+
+                    if not assignment:
+                        assignment = ShowCrew(
+                            show_id=show_uuid,
+                            crew_member_id=member.id,
+                            tenant_id=tenant_uuid
+                        )
+                        db.add(assignment)
+                        await db.commit()
+                        await db.refresh(assignment)
+
+                    # --- Geração do Link com Rastreador (Param 'm') ---
+                    magic_link = f"https://managershow.vimasistemas.com.br/daysheet/{show_id}?m={member.id}"
                     
                     message = (
                         f"Olá {member.name.split()[0]}, o roteiro do show em {show.location_city} "

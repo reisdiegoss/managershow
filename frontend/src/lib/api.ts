@@ -82,6 +82,27 @@ export const useApi = () => {
         return api.post(`/client/contractors/${contractorId}/notes`, { content });
     };
 
+    /**
+     * Retaguarda: KPIs Globais.
+     */
+    const getAdminStats = async () => {
+        return api.get('/retaguarda/dashboard/stats');
+    };
+
+    /**
+     * Retaguarda: Gráfico de Crescimento.
+     */
+    const getAdminGrowthChart = async () => {
+        return api.get('/retaguarda/dashboard/charts/growth');
+    };
+
+    /**
+     * Retaguarda: Lista de Tenants.
+     */
+    const getAdminTenants = async () => {
+        return api.get('/retaguarda/tenants');
+    };
+
     return {
         api,
         updateShowStatus,
@@ -90,6 +111,9 @@ export const useApi = () => {
         uploadContract,
         updateLeadStatus,
         convertLeadToShow,
-        addContractorNote
+        addContractorNote,
+        getAdminStats,
+        getAdminGrowthChart,
+        getAdminTenants
     };
 };

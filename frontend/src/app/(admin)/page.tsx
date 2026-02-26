@@ -32,7 +32,50 @@ const data = [
     { name: 'Fev', assinaturas: 24, cancelamentos: 2 },
 ];
 
+import { useApi } from '@/lib/api';
+
+interface DashboardStats {
+    mrr: number;
+    active_tenants: number;
+    trial_tenants: number;
+    churn_rate: number;
+    open_tickets: number;
+}
+
 export default function AdminDashboardPage() {
+    const { getAdminStats, getAdminGrowthChart } = useApi();
+    const [stats, setStats] = React.useState<DashboardStats | null>(null);
+    const [chartData, setChartData] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        loadDashboardData();
+    }, []);
+
+    const loadDashboardData = async () => {
+        try {
+            setLoading(true);
+            const [statsRes, chartRes] = await Promise.all([
+                getAdminStats(),
+                getAdminGrowthChart()
+            ]);
+            setStats(statsRes.data);
+            setChartData(chartRes.data);
+        } catch (error) {
+            console.error("Erro ao carregar dados do dashboard:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex h-[60vh] items-center justify-center">
+                <Activity className="h-10 w-10 animate-spin text-emerald-500" />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-10">
             {/* KPI Cards */}
@@ -40,7 +83,7 @@ export default function AdminDashboardPage() {
                 {[
                     {
                         title: 'MRR Atual',
-                        value: 'R$ 42.500',
+                        value: stats ? `R$ ${stats.mrr.toLocaleString('pt-BR')}` : 'R$ 0',
                         sub: '+12.5% vs mês anterior',
                         icon: DollarSign,
                         color: 'text-emerald-500',
@@ -48,7 +91,7 @@ export default function AdminDashboardPage() {
                     },
                     {
                         title: 'Taxa de Churn',
-                        value: '2.4%',
+                        value: stats ? `${stats.churn_rate}%` : '0%',
                         sub: '-0.8% melhoria',
                         icon: TrendingUp,
                         color: 'text-rose-500',
@@ -56,16 +99,16 @@ export default function AdminDashboardPage() {
                     },
                     {
                         title: 'Tenants Ativos',
-                        value: '128',
-                        sub: '92% taxa de retenção',
+                        value: stats ? stats.active_tenants.toString() : '0',
+                        sub: `${stats?.trial_tenants || 0} em período Trial`,
                         icon: Users,
                         color: 'text-blue-500',
                         trend: 'up'
                     },
                     {
                         title: 'Tickets Abertos',
-                        value: '14',
-                        sub: '3 urgentes agora',
+                        value: stats ? stats.open_tickets.toString() : '0',
+                        sub: 'Aguardando interação',
                         icon: LifeBuoy,
                         color: 'text-amber-500',
                         trend: 'none'
@@ -116,7 +159,7 @@ export default function AdminDashboardPage() {
 
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis
                                     dataKey="name"
