@@ -78,9 +78,9 @@ class TenantNotFoundException(ManagerShowException):
     """Tenant não encontrado no banco de dados."""
 
     def __init__(self, tenant_id: UUID | str = "") -> None:
-        msg = "Escritório/Agência não encontrado."
+        msg = "Escritório/Produtora não encontrado."
         if tenant_id:
-            msg = f"Escritório/Agência com ID {tenant_id} não encontrado."
+            msg = f"Escritório/Produtora com ID {tenant_id} não encontrado."
         super().__init__(
             error_code="TENANT_NOT_FOUND",
             message=msg,

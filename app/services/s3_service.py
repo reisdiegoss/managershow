@@ -11,7 +11,7 @@ settings = get_settings()
 
 class S3Service:
     @staticmethod
-    async def upload_file(file_content: bytes, filename: str, content_type: str = None) -> str:
+    async def upload_file(file_content: bytes, filename: str, content_type: str | None = None) -> str:
         """
         Realiza o upload de um arquivo para o bucket S3 (Minio).
         Retorna a URL pública/acesso do arquivo.

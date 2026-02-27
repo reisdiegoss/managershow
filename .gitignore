@@ -56,4 +56,8 @@ projeto.html
 FRONTEND_ARCHITECTURE.md
 ALINHAMENTO_MASTER.md
 README_UTF8.md
-
+*.txt
+start.ps1
+Evolution API - v2.3.-.postman_collection.json
+Dockerfile.prod
+docker-compose.prod.yml

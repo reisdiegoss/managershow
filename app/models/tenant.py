@@ -1,7 +1,7 @@
 """
-Manager Show — Model: Tenant (Escritório/Agência)
+Manager Show — Model: Tenant (Escritório/Produtora)
 
-O Tenant é a entidade raiz do Multi-Tenancy. Cada escritório/agência
+O Tenant é a entidade raiz do Multi-Tenancy. Cada escritório/produtora
 é um tenant isolado no sistema. A tabela Tenants NÃO herda TenantMixin
 pois ela própria é a referência de tenancy.
 """
@@ -10,11 +10,18 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Integer, String
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy import DateTime, Enum, Integer, String, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from typing import TYPE_CHECKING
 from app.models.base import Base, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.plan import Plan
+    from app.models.user import User
+    from app.models.role import Role
+    from app.models.artist import Artist
 
 
 class TenantStatus(str, enum.Enum):
@@ -26,7 +33,7 @@ class TenantStatus(str, enum.Enum):
 
 class Tenant(TimestampMixin, Base):
     """
-    Escritório/Agência — raiz do Multi-Tenancy.
+    Escritório/Produtora — raiz do Multi-Tenancy.
 
     Gerenciado exclusivamente pela Retaguarda (Super Admin).
     Cada tenant possui seus próprios usuários, artistas e shows.
@@ -42,7 +49,7 @@ class Tenant(TimestampMixin, Base):
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        comment="Nome do escritório/agência",
+        comment="Nome do escritório/produtora",
     )
     document: Mapped[str | None] = mapped_column(
         String(20),
@@ -65,19 +72,32 @@ class Tenant(TimestampMixin, Base):
         nullable=False,
         comment="Status da assinatura SaaS",
     )
+    plan_id: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("plans.id"),
+        nullable=True,
+        comment="Plano de assinatura base",
+    )
+    enabled_modules: Mapped[list[str]] = mapped_column(
+        JSONB,
+        default=list,
+        nullable=False,
+        comment="Módulos avulsos contratados (ex: ['whatsapp_pro'])",
+    )
     max_users: Mapped[int] = mapped_column(
         Integer,
         default=5,
         nullable=False,
-        comment="Limite máximo de usuários permitidos no plano",
+        comment="Limite máximo de usuários (sobrescreve o do plano se definido)",
     )
     subscription_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
-        comment="Data de vencimento da assinatura (renovada a cada pagamento)",
+        comment="Data de vencimento da assinatura",
     )
 
     # --- Relacionamentos ---
+    plan: Mapped["Plan"] = relationship("Plan", back_populates="tenants")
     users: Mapped[list["User"]] = relationship(  # noqa: F821
         back_populates="tenant",
         cascade="all, delete-orphan",

@@ -1,7 +1,7 @@
 """
 Manager Show — Model: Lead (CRM Interno da Retaguarda)
 
-Leads de prospecção do SaaS — escritórios/agências
+Leads de prospecção do SaaS — escritórios/produtoras
 que ainda não são clientes (Tenants).
 
 Funil de vendas: NOVO → CONTATADO → QUALIFICADO → PROPOSTA → CONVERTIDO / PERDIDO
@@ -29,7 +29,7 @@ class LeadStatus(str, enum.Enum):
 
 class Lead(TimestampMixin, Base):
     """
-    Lead do CRM interno — prospecção de novos escritórios/agências.
+    Lead do CRM interno — prospecção de novos escritórios/produtoras.
 
     NÃO possui tenant_id pois é gerido pela Retaguarda (Super Admin).
     Quando convertido, um Tenant é criado a partir dos dados do Lead.
@@ -45,7 +45,7 @@ class Lead(TimestampMixin, Base):
     company_name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        comment="Nome do escritório/agência prospectado",
+        comment="Nome do escritório/produtora prospectado",
     )
     contact_name: Mapped[str] = mapped_column(
         String(255),

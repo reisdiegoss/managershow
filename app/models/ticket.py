@@ -1,7 +1,7 @@
 """
 Manager Show — Model: Ticket (Help Desk — Retaguarda)
 
-Chamados de suporte abertos por usuários das agências.
+Chamados de suporte abertos por usuários das produtoras.
 
 Fluxo: ABERTO → EM_ATENDIMENTO → RESOLVIDO / FECHADO
 """
@@ -36,7 +36,7 @@ class Ticket(TimestampMixin, Base):
     """
     Ticket de suporte do Help Desk.
 
-    Vinculado a um Tenant (agência que abriu o chamado)
+    Vinculado a um Tenant (produtora que abriu o chamado)
     e opcionalmente a um User (quem abriu).
     """
 
@@ -52,7 +52,7 @@ class Ticket(TimestampMixin, Base):
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment="Agência que abriu o chamado",
+        comment="Produtora que abriu o chamado",
     )
     user_id: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),

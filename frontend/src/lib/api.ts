@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/nextjs';
 import axios, { InternalAxiosRequestConfig } from 'axios';
+import { useMemo } from 'react';
 import { Show, ShowStatus } from '@/types/show';
 
 /**
@@ -9,75 +10,70 @@ import { Show, ShowStatus } from '@/types/show';
 export const useApi = () => {
     const { getToken } = useAuth();
 
-    // URL base apontando para o nosso backend FastAPI
-    const api = axios.create({
-        baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
-    });
+    // Axios instanciado dentro de um useMemo para evitar disparos infinitos em useEffects dependentes de 'api'
+    const api = useMemo(() => {
+        const instance = axios.create({
+            baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+            timeout: 10000,
+        });
 
-    // Interceptor para injetar o token JWT de forma assíncrona
-    api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-        try {
-            const token = await getToken();
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+        instance.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+            console.log(`[useApi] Iniciando req para: ${config.url}`);
+            try {
+                const start = performance.now();
+                const token = await getToken();
+                console.log(`[useApi] getToken finalizado em ${Math.round(performance.now() - start)}ms. Token existe?`, !!token);
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+            } catch (error) {
+                console.error("[useApi] Erro ao recuperar token do Clerk:", error);
             }
-        } catch (error) {
-            console.error("Erro ao recuperar token do Clerk:", error);
-        }
-        return config;
-    });
+            return config;
+        });
 
-    /**
-     * Atualiza o status de um show específico.
-     */
+        instance.interceptors.response.use(
+            (response) => {
+                console.log(`[useApi] Resposta OK de ${response.config.url}:`, response.status);
+                return response;
+            },
+            (error) => {
+                console.error(`[useApi] Erro na resposta de ${error.config?.url}:`, error.message);
+                return Promise.reject(error);
+            }
+        );
+
+        return instance;
+    }, [getToken]);
+
     const updateShowStatus = async (id: string, status: ShowStatus) => {
         return api.patch(`/client/shows/${id}`, { status });
     };
 
-    /**
-     * Simula a viabilidade financeira de um show.
-     */
     const simulateShow = async (data: { location_city: string; location_uf: string; base_price: number; client_type: string }) => {
         return api.post('/client/shows/simulate', data);
     };
 
-    /**
-     * Cria um novo show.
-     */
     const createShow = async (data: Partial<Show>) => {
         return api.post('/client/shows', data);
     };
 
-    /**
-     * Faz o upload de um contrato assinado.
-     */
     const uploadContract = async (showId: string, file: File) => {
         const formData = new FormData();
         formData.append('file', file);
         return api.post(`/client/contracts/${showId}/upload`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
     };
 
-    /**
-     * CRM: Atualiza o status de um lead.
-     */
     const updateLeadStatus = async (id: string, status: string) => {
         return api.patch(`/client/leads/${id}`, { status });
     };
 
-    /**
-     * CRM: Converte lead para show.
-     */
     const convertLeadToShow = async (id: string) => {
         return api.post(`/client/leads/${id}/convert`);
     };
 
-    /**
-     * CRM: Adiciona nota ao contratante.
-     */
     const addContractorNote = async (contractorId: string, content: string) => {
         return api.post(`/client/contractors/${contractorId}/notes`, { content });
     };
@@ -104,14 +100,44 @@ export const useApi = () => {
     };
 
     /**
-     * Upload múltiplo de mídias de comprovação fiscal.
+     * Retaguarda: Atualizar Tenant.
      */
+    const updateAdminTenant = async (id: string, data: any) => {
+        return api.patch(`/retaguarda/tenants/${id}`, data);
+    };
+
+    /**
+     * Retaguarda: Lista de Planos.
+     */
+    const getAdminPlans = async () => {
+        return api.get('/retaguarda/plans');
+    };
+
+    /**
+     * Retaguarda: Suporte Técnico.
+     */
+    const getAdminTickets = async () => {
+        return api.get('/retaguarda/tickets');
+    };
+
     const uploadExecutionMedia = async (showId: string, files: File[]) => {
         const formData = new FormData();
         files.forEach(file => formData.append('files', file));
         return api.post(`/client/shows/${showId}/execution-media`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
+    };
+
+    const getWhatsAppQR = async () => {
+        return api.get('/retaguarda/settings/whatsapp/qrcode');
+    };
+
+    const createWhatsAppInstance = async () => {
+        return api.post('/retaguarda/settings/whatsapp/instance');
+    };
+
+    const logoutWhatsApp = async () => {
+        return api.post('/retaguarda/settings/whatsapp/logout');
     };
 
     return {
@@ -126,6 +152,12 @@ export const useApi = () => {
         getAdminStats,
         getAdminGrowthChart,
         getAdminTenants,
-        uploadExecutionMedia
+        updateAdminTenant,
+        getAdminPlans,
+        getAdminTickets,
+        uploadExecutionMedia,
+        getWhatsAppQR,
+        createWhatsAppInstance,
+        logoutWhatsApp
     };
 };

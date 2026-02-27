@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, func, count
+from sqlalchemy import select, func
 from app.core.dependencies import DbSession
 from app.models.tenant import Tenant, TenantStatus
 from app.models.saas_payment_log import SaaSPaymentLog
@@ -13,12 +13,12 @@ async def get_dashboard_stats(db: DbSession):
     Retorna os KPIs globais para o dashboard da Retaguarda.
     """
     # 1. Total de Tenants Ativos
-    stmt_active = select(count()).select_from(Tenant).where(Tenant.status == TenantStatus.ACTIVE)
+    stmt_active = select(func.count()).select_from(Tenant).where(Tenant.status == TenantStatus.ACTIVE)
     res_active = await db.execute(stmt_active)
     total_active = res_active.scalar() or 0
 
     # 2. Tenants em Trial
-    stmt_trial = select(count()).select_from(Tenant).where(Tenant.status == TenantStatus.TRIAL)
+    stmt_trial = select(func.count()).select_from(Tenant).where(Tenant.status == TenantStatus.TRIAL)
     res_trial = await db.execute(stmt_trial)
     total_trial = res_trial.scalar() or 0
 

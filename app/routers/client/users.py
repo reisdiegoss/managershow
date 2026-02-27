@@ -4,7 +4,7 @@ Permite que o administrador do Tenant gerencie seus usuários e permissões de v
 """
 
 import uuid
-from typing import list
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, delete
 from app.core.dependencies import CurrentUser, DbSession, TenantId
@@ -24,7 +24,7 @@ class UserVisibilityUpdate(BaseModel):
 async def list_users(
     db: DbSession,
     tenant_id: TenantId,
-    current_user: CurrentUser = Depends(require_permissions("can_manage_users")),
+    current_user: User = Depends(require_permissions("can_manage_users")),
 ):
     """Lista todos os usuários do tenant (exceto sensíveis)."""
     from sqlalchemy.orm import selectinload
@@ -55,7 +55,7 @@ async def update_user_visibility(
     data: UserVisibilityUpdate,
     db: DbSession,
     tenant_id: TenantId,
-    current_user: CurrentUser = Depends(require_permissions("can_manage_users")),
+    current_user: User = Depends(require_permissions("can_manage_users")),
 ):
     """
     Atualiza a matriz de visibilidade do usuário (Fase 24).

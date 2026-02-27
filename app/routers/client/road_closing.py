@@ -10,8 +10,11 @@ Suporta dados offline-sync do app mobile PWA.
 """
 
 import shutil
+import uuid
+from decimal import Decimal
+from datetime import datetime, timezone
 from pathlib import Path
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 

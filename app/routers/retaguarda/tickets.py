@@ -7,7 +7,7 @@ Fluxo: ABERTO → EM_ATENDIMENTO → RESOLVIDO / FECHADO
 
 import uuid
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy import func, select
 
 from app.core.dependencies import DbSession
@@ -29,7 +29,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", summary="List Tickets", response_model=PaginatedResponse[TicketResponse])
+@router.get("", summary="List Tickets", response_model=PaginatedResponse[TicketResponse])
 async def list_tickets(
     db: DbSession,
     page: int = Query(1, ge=1),
@@ -67,11 +67,11 @@ async def list_tickets(
     }
 
 
-@router.post("/", summary="Create Ticket", response_model=TicketResponse, status_code=201)
+@router.post("", summary="Create Ticket", response_model=TicketResponse, status_code=201)
 async def create_ticket(
     payload: TicketCreate,
     db: DbSession,
-    tenant_id: uuid.UUID | None = Query(None, description="Tenant ID (agência)"),
+    tenant_id: uuid.UUID | None = Query(None, description="Tenant ID (produtora)"),
     user_id: uuid.UUID | None = Query(None, description="User ID (quem abriu)"),
 ) -> Ticket:
     """Cria um novo ticket de suporte."""

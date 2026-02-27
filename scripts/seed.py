@@ -88,7 +88,7 @@ def seed() -> None:
         )
         tenant_b = Tenant(
             id=tenant_b_id,
-            name="Agência Hit Produções",
+            name="Produtora Hit Produções",
             document="98.765.432/0001-10",
             email="contato@hitproducoes.com.br",
             phone="(21) 99999-0002",
@@ -144,7 +144,7 @@ def seed() -> None:
             "produtor_a": Role(id=uuid.uuid4(), tenant_id=tenant_a_id, name="Produtor", description="Produção e logística de shows", permissions=produtor_perms),
             "vendedor_a": Role(id=uuid.uuid4(), tenant_id=tenant_a_id, name="Vendedor", description="Comercial — criação e simulação de shows", permissions=vendedor_perms),
             "musico_a": Role(id=uuid.uuid4(), tenant_id=tenant_a_id, name="Músico", description="Visualização de roteiros (sem acesso financeiro)", permissions=musico_perms),
-            "admin_b": Role(id=uuid.uuid4(), tenant_id=tenant_b_id, name="Admin", description="Administrador da agência", permissions=admin_perms),
+            "admin_b": Role(id=uuid.uuid4(), tenant_id=tenant_b_id, name="Admin", description="Administrador da produtora", permissions=admin_perms),
             "produtor_b": Role(id=uuid.uuid4(), tenant_id=tenant_b_id, name="Produtor", description="Produção e logística", permissions=produtor_perms),
         }
         session.add_all(roles_data.values())

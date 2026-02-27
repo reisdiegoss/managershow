@@ -20,7 +20,7 @@ class User(TenantMixin, TimestampMixin, Base):
     Usuário do sistema Manager Show.
 
     Cada usuário é vinculado a:
-    - Um Tenant (escritório/agência) via TenantMixin
+    - Um Tenant (escritório/produtora) via TenantMixin
     - Um Role (perfil de permissões) via role_id
     - Um ID no Clerk (provedor de autenticação) via clerk_id
     """

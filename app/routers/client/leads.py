@@ -9,13 +9,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.core.database import DbSession
-from app.core.auth import TenantId
+from app.core.dependencies import CurrentUser, DbSession, TenantId
 from app.models.commercial_lead import CommercialLead, CommercialLeadStatus
 from app.models.show import Show, ShowStatus
 from app.schemas.commercial_lead import CommercialLeadCreate, CommercialLeadUpdate, CommercialLeadResponse
 from app.schemas.show import ShowResponse
-from app.core.database import tenant_query
+from app.core.tenant_filter import tenant_query
 
 router = APIRouter(prefix="/leads", tags=["CRM / Leads"])
 

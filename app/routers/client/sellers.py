@@ -4,8 +4,8 @@ Manager Show — Router: Sellers (Vendedores)
 
 import uuid
 from fastapi import APIRouter, HTTPException
-from app.core.database import DbSession, tenant_query
-from app.core.auth import TenantId
+from app.core.dependencies import DbSession, TenantId
+from app.core.tenant_filter import tenant_query
 from app.models.seller import Seller
 from app.schemas.seller import SellerCreate, SellerUpdate, SellerResponse
 

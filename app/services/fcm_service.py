@@ -1,7 +1,9 @@
-import firebase_admin
-from firebase_admin import credentials, messaging
-from app.core.config import settings
+import firebase_admin # type: ignore
+from firebase_admin import credentials, messaging # type: ignore
+from app.config import get_settings
 import logging
+
+settings = get_settings()
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +22,9 @@ class FCMService:
         if not cls._initialized:
             try:
                 # Caso a Key venha via path pelo Env, injeta no SDK
-                if settings.FIREBASE_SERVICE_ACCOUNT_PATH:
-                    cred = credentials.Certificate(settings.FIREBASE_SERVICE_ACCOUNT_PATH)
+                firebase_path = getattr(settings, "FIREBASE_SERVICE_ACCOUNT_PATH", None)
+                if firebase_path:
+                    cred = credentials.Certificate(firebase_path)
                     firebase_admin.initialize_app(cred)
                     cls._initialized = True
                     logger.info("FCM Service: Initialized successfully with credentials.")
@@ -31,7 +34,7 @@ class FCMService:
                 logger.error(f"FCM Service: Failed to initialize Firebase App: {e}")
 
     @classmethod
-    def send_push_notification(cls, token: str, title: str, body: str, data: dict = None, dry_run: bool = False):
+    def send_push_notification(cls, token: str, title: str, body: str, data: dict | None = None, dry_run: bool = False):
         """
         Envia uma notificação Push via FCM para um único token específico.
         
@@ -65,7 +68,7 @@ class FCMService:
             return None
 
     @classmethod
-    def send_multicast_notification(cls, tokens: list[str], title: str, body: str, data: dict = None, dry_run: bool = False):
+    def send_multicast_notification(cls, tokens: list[str], title: str, body: str, data: dict | None = None, dry_run: bool = False):
         """Dispara um Push de forma otimizada para várias pessoas ao mesmo tempo."""
         if not tokens:
             return None

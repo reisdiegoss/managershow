@@ -7,7 +7,7 @@ REGRA CRÍTICA DA BÍBLIA:
 - Comissão sobre BRUTO: Calculada sobre o Valor de Face (GROSS)
   → Geralmente para vendedores externos e intermediários
 - Comissão sobre LÍQUIDO: Calculada sobre o Resultado Final / Liquidez (NET)
-  → Geralmente para a agência e sócios
+  → Geralmente para a produtora e sócios
   → Só pode ser calculada APÓS abater todos custos, impostos e comissões brutas
 """
 

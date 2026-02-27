@@ -1,7 +1,7 @@
 """
 Manager Show — Router: CRM (Retaguarda) — 100% Operacional
 
-CRUD completo de Leads para prospecção de novos escritórios/agências.
+CRUD completo de Leads para prospecção de novos escritórios/produtoras.
 Funil de vendas: NOVO → CONTATADO → QUALIFICADO → PROPOSTA → CONVERTIDO / PERDIDO
 """
 

@@ -4,17 +4,17 @@ Revision ID: c3ca71e494ff
 Revises: 166716aa8cad
 Create Date: 2026-02-25 12:54:48.018026
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic
 revision: str = 'c3ca71e494ff'
-down_revision: Union[str, None] = '166716aa8cad'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = '166716aa8cad'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

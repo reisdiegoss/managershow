@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.db.session import get_db
+from app.database import get_db
 from app.core.auth import get_current_user
 from app.schemas.user import UserResponse
 from app.schemas.tenant import TenantOnboardingUpdate, TenantResponse
-from app.models.tenant import Tenant, TenantSettings
+from app.models.tenant import Tenant
+from app.models.tenant_settings import TenantSettings
 from loguru import logger
 
 router = APIRouter()
@@ -16,7 +17,7 @@ def complete_onboarding(
     current_user: UserResponse = Depends(get_current_user),
 ):
     """
-    Finaliza o Wizard de Onboarding da Agência.
+    Finaliza o Wizard de Onboarding da Produtora.
     (Self-Service SaaS - Step 1/2/3).
     Apenas Administradores principais podem prosseguir com isso.
     """
@@ -34,7 +35,7 @@ def complete_onboarding(
     if tenant.is_onboarded:
         raise HTTPException(
             status_code=400,
-            detail="A agência já concluiu o Onboarding anteriormente.",
+            detail="A produtora já concluiu o Onboarding anteriormente.",
         )
 
     # 2. Configurar Settings atreladas ao Tenant
@@ -66,5 +67,5 @@ def complete_onboarding(
         logger.error(f"[ONBOARDING ERROR] Falha ao tramitar config tenant {tenant.id}: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail="Ocorreu um erro ao finalizar o Onboarding da sua Agência."
+            detail="Ocorreu um erro ao finalizar o Onboarding da sua Produtora."
         )

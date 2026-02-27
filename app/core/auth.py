@@ -122,6 +122,22 @@ async def _get_user_by_clerk_id(db: AsyncSession, clerk_id: str) -> User:
     user = result.scalar_one_or_none()
 
     if not user:
+        from app.config import get_settings
+        settings = get_settings()
+        
+        # --- Auto-Heal Clerk ID (Modo Dev) ---
+        if settings.app_env == "development":
+            stmt_admin = select(User).where(User.email == "contato@vimasistemas.com.br")
+            admin_user = (await db.execute(stmt_admin)).scalar_one_or_none()
+            
+            if admin_user:
+                # Atualizando forçosamente o clerk_id do Admin para o token atual de dev
+                admin_user.clerk_id = clerk_id
+                await db.commit()
+                await db.refresh(admin_user)
+                _validate_user_access(admin_user)
+                return admin_user
+
         raise HTTPException(
             status_code=404,
             detail="Usuário não encontrado no sistema. Solicite acesso ao administrador.",

@@ -59,9 +59,7 @@ class DREResult:
     valor_nota_fiscal: Decimal
     receita_bruta_cache: Decimal
     
-    # Mercado Público (Fase 26)
-    valor_empenhado: Decimal = Decimal("0")
-    valor_liquidado: Decimal = Decimal("0")
+
 
     # Deduções
     impostos: Decimal
@@ -77,6 +75,10 @@ class DREResult:
     # Comissões sobre Bruto
     comissoes_bruto: Decimal
     comissoes_bruto_detalhes: list[CommissionDetail] = field(default_factory=list)
+
+    # Mercado Público (Fase 26)
+    valor_empenhado: Decimal = Decimal("0")
+    valor_liquidado: Decimal = Decimal("0")
 
     # Lucro Líquido
     lucro_liquido: Decimal = Decimal("0")

@@ -2,7 +2,7 @@
 Manager Show — Routers: Retaguarda (Super Admin)
 
 Agrupa os sub-routers do namespace /api/v1/retaguarda:
-- /tenants — CRUD de agências/escritórios
+- /tenants — CRUD de produtoras/escritórios
 - /webhooks — Webhooks do Asaas (pagamentos)
 - /crm — Funil de leads do SaaS
 - /tickets — Help Desk / Suporte
@@ -18,6 +18,7 @@ from app.routers.retaguarda.crm import router as crm_router
 from app.routers.retaguarda.tickets import router as tickets_router
 from app.routers.retaguarda.settings import router as settings_router
 from app.routers.retaguarda.dashboard import router as dashboard_router
+from app.routers.retaguarda.plans import router as plans_router
 
 router = APIRouter(prefix="/api/v1/retaguarda", tags=["Retaguarda"])
 
@@ -27,3 +28,4 @@ router.include_router(crm_router)
 router.include_router(tickets_router)
 router.include_router(settings_router)
 router.include_router(dashboard_router)
+router.include_router(plans_router)

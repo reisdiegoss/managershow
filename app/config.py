@@ -37,8 +37,11 @@ class Settings(BaseSettings):
 
     # --- Clerk (Autenticação JWT) ---
     clerk_secret_key: str = "sk_test_PLACEHOLDER"
-    clerk_jwks_url: str = "https://seu-app.clerk.accounts.dev/.well-known/jwks.json"
-    clerk_issuer: str = "https://seu-app.clerk.accounts.dev"
+    clerk_jwks_url: str = "https://pleasant-bunny-93.clerk.accounts.dev/.well-known/jwks.json"
+    clerk_issuer: str = "https://pleasant-bunny-93.clerk.accounts.dev"
+    next_public_clerk_publishable_key: str | None = None
+    next_public_clerk_sign_in_url: str | None = None
+    next_public_clerk_sign_up_url: str | None = None
 
     # --- Asaas (Webhook de pagamento SaaS) ---
     asaas_webhook_token: str = "PLACEHOLDER"

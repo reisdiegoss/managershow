@@ -1,7 +1,7 @@
 """
 Manager Show — Model: Artist (Artista)
 
-Cada artista pertence a um Tenant (escritório/agência).
+Cada artista pertence a um Tenant (escritório/produtora).
 Um tenant pode gerenciar múltiplos artistas (Multi-Artista).
 O artista é referenciado em todos os shows do sistema.
 """

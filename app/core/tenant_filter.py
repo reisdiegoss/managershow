@@ -9,7 +9,7 @@ Dois mecanismos de segurança:
 2. tenant_query(): Helper que retorna um select() já filtrado
    por tenant_id — para uso rápido nos routers/services.
 
-REGRA DA ARCHITECTURE.md: Uma agência NUNCA pode ver ou alterar
+REGRA DA ARCHITECTURE.md: Uma produtora NUNCA pode ver ou alterar
 dados de outra. Este módulo é a implementação dessa garantia.
 """
 

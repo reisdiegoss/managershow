@@ -53,7 +53,7 @@ async def get_daysheet(
     }
 
 
-@router.get("/{show_id}/pdf", summary="Download Day Sheet PDF")
+@router.get("/pdf", summary="Download Day Sheet PDF")
 async def download_daysheet_pdf(
     show_id: uuid.UUID,
     db: DbSession,

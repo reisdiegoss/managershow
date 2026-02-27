@@ -68,14 +68,14 @@ export default function DashboardPage() {
 
             {/* Grid de KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <KPI-Card
+                <KPICard
                     title="Faturamento Mensal"
                     value={formatCurrency(62000)}
                     subValue="+12% vs mês anterior"
                     icon={DollarSign}
                     trend="up"
                 />
-                <KPI-Card
+                <KPICard
                     title="Lucro Líquido"
                     value={formatCurrency(24000)}
                     subValue="38.7% de Margem"
@@ -83,14 +83,14 @@ export default function DashboardPage() {
                     trend="up"
                     highlight
                 />
-                <KPI-Card
+                <KPICard
                     title="Shows Ativos"
                     value="14"
                     subValue="8 Cidades diferentes"
                     icon={Calendar}
                     trend="neutral"
                 />
-                <KPI-Card
+                <KPICard
                     title="Alertas de Risco"
                     value="03"
                     subValue="Contratos Pendentes"

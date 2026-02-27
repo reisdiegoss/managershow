@@ -1,7 +1,7 @@
 """
 Manager Show — Router: Tenants (Retaguarda / Super Admin)
 
-CRUD de escritórios/agências. Gerencia:
+CRUD de escritórios/produtoras. Gerencia:
 - Criação de novos tenants
 - Listagem de todos os tenants
 - Atualização de dados e status (Ativo, Suspenso, Trial)
@@ -27,12 +27,12 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=TenantResponse, status_code=201)
+@router.post("", response_model=TenantResponse, status_code=201)
 async def create_tenant(
     data: TenantCreate,
     db: DbSession,
 ) -> Tenant:
-    """Cria um novo tenant (escritório/agência)."""
+    """Cria um novo tenant (escritório/produtora)."""
     tenant = Tenant(**data.model_dump())
     db.add(tenant)
     await db.flush()
@@ -40,7 +40,7 @@ async def create_tenant(
     return tenant
 
 
-@router.get("/", response_model=PaginatedResponse[TenantResponse])
+@router.get("", response_model=PaginatedResponse[TenantResponse])
 async def list_tenants(
     db: DbSession,
     page: int = Query(1, ge=1),
@@ -53,8 +53,13 @@ async def list_tenants(
     count_stmt = select(func.count()).select_from(Tenant)
     total = (await db.execute(count_stmt)).scalar() or 0
 
-    # Registros paginados
-    stmt = select(Tenant).offset(offset).limit(page_size).order_by(Tenant.created_at.desc())
+    # Registros paginados com join no plano
+    stmt = (
+        select(Tenant)
+        .offset(offset)
+        .limit(page_size)
+        .order_by(Tenant.created_at.desc())
+    )
     result = await db.execute(stmt)
     tenants = result.scalars().all()
 

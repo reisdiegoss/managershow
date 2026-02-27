@@ -54,7 +54,7 @@ app = FastAPI(
         "gestão 360º de carreiras artísticas e shows.\n\n"
         "**Namespaces:**\n"
         "- `/api/v1/retaguarda` — Super Admin (gestão SaaS)\n"
-        "- `/api/v1/client` — Manager Show (visão do cliente/agência)\n\n"
+        "- `/api/v1/client` — Manager Show (visão do cliente/produtora)\n\n"
         "**Autenticação:** Clerk JWT (RS256)\n\n"
         "**Em desenvolvimento:** Use o header `X-Dev-User-Id` com o UUID "
         "de um usuário seedado para testar sem token Clerk."

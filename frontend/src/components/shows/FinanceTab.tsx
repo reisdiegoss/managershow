@@ -111,8 +111,8 @@ export function FinanceTab({ showId, basePrice, transactions, isConsolidated, lo
                         </h4>
                         <p className={cn("text-xs mt-1 max-w-lg", dre.isConsolidated ? "text-emerald-600/80" : "text-amber-600/80")}>
                             {dre.isConsolidated
-                                ? "Este show já teve seu status 'Concluído' ou teve prestação de contas de estrada efetuada. Os números aqui dispostos são faturamento líquido absoluto da agência e não podem ser maquiados."
-                                : "Ainda pendente de conclusão oficial ou fechamento de gastos de estrada. Os valores nesta página refletem a estimativa / prévia de lucros momentânea da agência baseada na precificação."}
+                                ? "Este show já teve seu status 'Concluído' ou teve prestação de contas de estrada efetuada. Os números aqui dispostos são faturamento líquido absoluto da produtora e não podem ser maquiados."
+                                : "Ainda pendente de conclusão oficial ou fechamento de gastos de estrada. Os valores nesta página refletem a estimativa / prévia de lucros momentânea da produtora baseada na precificação."}
                         </p>
                     </div>
                 </div>

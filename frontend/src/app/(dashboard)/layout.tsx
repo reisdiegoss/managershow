@@ -20,6 +20,7 @@ import {
     ChevronRight
 } from "lucide-react";
 import { GlobalArtistSelector } from "@/components/layout/GlobalArtistSelector";
+import { useToast } from "@/components/ui/use-toast";
 
 /**
  * Itens de navegação principal
@@ -49,6 +50,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const { toast } = useToast();
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-transparent text-slate-200">
@@ -163,13 +165,32 @@ export default function DashboardLayout({
                 {/* 3. BOTTOM NAVIGATION (Mobile Only) */}
                 <nav className="fixed bottom-0 z-50 flex w-full items-center justify-around border-t border-white/5 glass-morphism px-2 py-3 backdrop-blur-xl md:hidden">
 
-                    {[...mainNavItems.slice(0, 3), { label: "Perfil", icon: Users, href: "/profile" }].map((item) => {
+                    {[...mainNavItems.slice(0, 3)].map((item) => {
                         const isActive = pathname === item.href;
+                        const isImplemented = item.href === "/";
+
+                        if (isImplemented) {
+                            return (
+                                <Link
+                                    key={item.label}
+                                    href={item.href}
+                                    className={`flex flex-col items-center gap-1 transition-all ${isActive ? "text-indigo-600" : "text-slate-400"
+                                        }`}
+                                >
+                                    <div className={`flex h-10 w-16 items-center justify-center rounded-2xl transition-colors ${isActive ? "bg-indigo-50" : ""
+                                        }`}>
+                                        <item.icon className="h-6 w-6" />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-tighter">{item.label}</span>
+                                </Link>
+                            );
+                        }
+
                         return (
-                            <Link
+                            <button
                                 key={item.label}
-                                href={item.href}
-                                className={`flex flex-col items-center gap-1 transition-all ${isActive ? "text-indigo-600" : "text-slate-400"
+                                onClick={() => toast({ title: "Módulo em Construção", description: `A funcionalidade ${item.label} será liberada em breve!` })}
+                                className={`flex flex-col items-center gap-1 transition-all opacity-50 cursor-not-allowed ${isActive ? "text-indigo-600" : "text-slate-400"
                                     }`}
                             >
                                 <div className={`flex h-10 w-16 items-center justify-center rounded-2xl transition-colors ${isActive ? "bg-indigo-50" : ""
@@ -177,9 +198,19 @@ export default function DashboardLayout({
                                     <item.icon className="h-6 w-6" />
                                 </div>
                                 <span className="text-[10px] font-black uppercase tracking-tighter">{item.label}</span>
-                            </Link>
+                            </button>
                         );
                     })}
+
+                    <button
+                        onClick={() => toast({ title: "Módulo em Construção", description: `O seu perfil está sendo preparado na Retaguarda!` })}
+                        className="flex flex-col items-center gap-1 transition-all text-slate-400 opacity-50 cursor-not-allowed"
+                    >
+                        <div className="flex h-10 w-16 items-center justify-center rounded-2xl transition-colors">
+                            <Users className="h-6 w-6" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-tighter">Perfil</span>
+                    </button>
                 </nav>
             </main>
         </div>

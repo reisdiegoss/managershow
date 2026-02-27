@@ -16,7 +16,6 @@ import {
 } from 'recharts';
 import { useApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { PerformanceChart360 } from '@/components/dashboard/PerformanceChart360';
 
 interface DashboardStats {
     mrr: number;
@@ -63,17 +62,8 @@ export default function AdminDashboardPage() {
     return (
         <div className="space-y-10">
 
-            {/* Injeção Nativa do PostgreSQL Cockpit para Analytics do DRE */}
-            <div className="mb-12">
-                <h2 className="text-2xl font-black italic uppercase tracking-tighter text-slate-800 mb-2">Visão Executiva de Produtividade</h2>
-                <p className="text-sm font-bold text-slate-400 mb-6">Receitas Bruta Acumulada contra Despesas Imutáveis de Projetos</p>
-                <PerformanceChart360 />
-            </div>
-
-            <hr className="border-t border-slate-100" />
-
             <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-800 mb-2 mt-8">Panorama SaaS (Manager Show)</h2>
-            <p className="text-sm font-bold text-slate-400 mb-6">Métricas Administrativas de Agências Integradas no Sistema</p>
+            <p className="text-sm font-bold text-slate-400 mb-6">Métricas Administrativas de Clientes Integrados no Sistema</p>
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -95,7 +85,7 @@ export default function AdminDashboardPage() {
                         trend: 'down'
                     },
                     {
-                        title: 'Tenants Ativos',
+                        title: 'Clientes Ativos',
                         value: stats ? stats.active_tenants.toString() : '0',
                         sub: `${stats?.trial_tenants || 0} em período Trial`,
                         icon: Users,
@@ -154,8 +144,8 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="h-[350px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div style={{ width: '100%', height: 350 }}>
+                        <ResponsiveContainer width="100%" height={350}>
                             <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_async_db
+from app.database import get_db as get_async_db
 from app.models.show import Show
 from app.models.show_crew import ShowCrew
 from app.models.logistics_timeline import LogisticsTimeline

@@ -1,21 +1,50 @@
+"""
+Manager Show — Router: Settings Gerais da Plataforma
+"""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
-from app.core.dependencies import DbSession
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import get_current_super_admin
+from app.database import get_db
 from app.models.system_settings import SystemSettings
-from app.schemas.system_settings import SystemSettingsResponse, SystemSettingsUpdate
+from app.services.evolution_api_service import EvolutionApiService
 
-router = APIRouter(prefix="/settings", tags=["Retaguarda — Configurações"])
+router = APIRouter(
+    prefix="/settings",
+    tags=["Retaguarda — Configurações"],
+    dependencies=[Depends(get_current_super_admin)]
+)
 
-@router.get("/whatsapp", response_model=SystemSettingsResponse)
-async def get_whatsapp_settings(
-    db: DbSession,
-    current_admin: dict = Depends(get_current_super_admin)
-):
-    """
-    Retorna as configurações globais de WhatsApp.
-    Se não existirem, cria um registro padrão.
-    """
+@router.get("/whatsapp")
+async def get_whatsapp_settings(db: AsyncSession = Depends(get_db)):
+    """Busca as configurações de WhatsApp e o status atual da instância."""
+    stmt = select(SystemSettings).limit(1)
+    result = await db.execute(stmt)
+    settings = result.scalar_one_or_none()
+
+    if not settings:
+        return {
+            "is_whatsapp_active": False,
+            "evolution_api_url": "",
+            "evolution_api_key": "",
+            "evolution_instance_name": "",
+            "status": "NOT_CONFIGURED"
+        }
+
+    status = await EvolutionApiService.get_connection_state(settings)
+    
+    return {
+        "is_whatsapp_active": settings.is_whatsapp_active,
+        "evolution_api_url": settings.evolution_api_url,
+        "evolution_api_key": settings.evolution_api_key,
+        "evolution_instance_name": settings.evolution_instance_name,
+        "status": status
+    }
+
+@router.patch("/whatsapp")
+async def update_whatsapp_settings(data: dict, db: AsyncSession = Depends(get_db)):
+    """Atualiza as configurações de WhatsApp no banco."""
     stmt = select(SystemSettings).limit(1)
     result = await db.execute(stmt)
     settings = result.scalar_one_or_none()
@@ -23,59 +52,56 @@ async def get_whatsapp_settings(
     if not settings:
         settings = SystemSettings()
         db.add(settings)
-        await db.commit()
-        await db.refresh(settings)
 
-    return settings
-
-@router.patch("/whatsapp", response_model=SystemSettingsResponse)
-async def update_whatsapp_settings(
-    payload: SystemSettingsUpdate,
-    db: DbSession,
-    current_admin: dict = Depends(get_current_super_admin)
-):
-    """
-    Atualiza as configurações globais de WhatsApp.
-    """
-    stmt = select(SystemSettings).limit(1)
-    result = await db.execute(stmt)
-    settings = result.scalar_one_or_none()
-
-    if not settings:
-        settings = SystemSettings()
-        db.add(settings)
-
-    # Atualiza apenas os campos enviados
-    update_data = payload.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(settings, field, value)
+    settings.is_whatsapp_active = data.get("is_whatsapp_active", settings.is_whatsapp_active)
+    settings.evolution_api_url = data.get("evolution_api_url", settings.evolution_api_url)
+    settings.evolution_api_key = data.get("evolution_api_key", settings.evolution_api_key)
+    settings.evolution_instance_name = data.get("evolution_instance_name", settings.evolution_instance_name)
 
     await db.commit()
-    await db.refresh(settings)
-    return settings
+    return {"message": "Configurações atualizadas com sucesso"}
 
-@router.post("/whatsapp/test")
-async def test_whatsapp_connection(
-    db: DbSession,
-    current_admin: dict = Depends(get_current_super_admin)
-):
-    """
-    Endpoint para testar a conexão com a Evolution API.
-    """
-    from app.services.whatsapp_service import send_whatsapp_message
-    
-    # Busca configurações
+@router.post("/whatsapp/instance")
+async def create_whatsapp_instance(db: AsyncSession = Depends(get_db)):
+    """Cria a instância na Evolution API."""
     stmt = select(SystemSettings).limit(1)
     result = await db.execute(stmt)
     settings = result.scalar_one_or_none()
-
-    if not settings or not settings.is_whatsapp_active:
-        raise HTTPException(status_code=400, detail="WhatsApp não está ativo nas configurações.")
-
-    # Envia mensagem de teste para o próprio admin (se possível) ou um log
-    # Como não temos o telefone do admin aqui de forma fácil para teste real, 
-    # vamos apenas validar se a API responde 200 na listagem de instâncias ou algo similar,
-    # ou tentamos um envio mock de validação.
     
-    # Por simplicidade da instrução, vamos considerar o sucesso se o serviço não der erro grave.
-    return {"status": "success", "message": "Configurações validadas e prontas para uso."}
+    if not settings:
+        raise HTTPException(status_code=404, detail="Configurações não encontradas")
+        
+    success = await EvolutionApiService.create_instance(settings)
+    if success:
+        return {"message": "Instância criada com sucesso"}
+    raise HTTPException(status_code=400, detail="Falha ao criar instância")
+
+@router.get("/whatsapp/qrcode")
+async def get_whatsapp_qrcode(db: AsyncSession = Depends(get_db)):
+    """Gera/Busca o QR Code para conexão."""
+    stmt = select(SystemSettings).limit(1)
+    result = await db.execute(stmt)
+    settings = result.scalar_one_or_none()
+    
+    if not settings:
+        raise HTTPException(status_code=404, detail="Configurações não encontradas")
+        
+    qrcode = await EvolutionApiService.get_qrcode(settings)
+    if qrcode:
+        return {"qrcode": qrcode}
+    raise HTTPException(status_code=400, detail="Falha ao gerar QR Code")
+
+@router.post("/whatsapp/logout")
+async def logout_whatsapp_instance(db: AsyncSession = Depends(get_db)):
+    """Desconecta a instância do WhatsApp."""
+    stmt = select(SystemSettings).limit(1)
+    result = await db.execute(stmt)
+    settings = result.scalar_one_or_none()
+    
+    if not settings:
+        raise HTTPException(status_code=404, detail="Configurações não encontradas")
+        
+    success = await EvolutionApiService.logout(settings)
+    if success:
+        return {"message": "Desconectado com sucesso"}
+    raise HTTPException(status_code=400, detail="Falha ao desconectar")

@@ -233,7 +233,7 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
 
     return (
         <div className="flex flex-col space-y-6">
-            {/* Header Premium (Hero Section) */}
+            {/* Header / KPIs Globais da Produtora */}
             <div className="rounded-[2.5rem] glass-card p-8 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2" />
 
@@ -307,7 +307,7 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Modelo de Negócio</p>
-                                        <p className="text-sm font-bold text-slate-700">{show.negotiation_type}</p>
+                                        <p className="text-sm font-bold text-slate-400 mb-6">Métricas Administrativas de Produtoras Integradas no Sistema</p>
                                     </div>
                                 </div>
                             </div>
@@ -357,7 +357,7 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                             <div className="space-y-2">
                                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-100 italic">Finalização Jurídica</h3>
 
-                                <p className="text-xs text-slate-500">Anexe o contrato assinado para validar a etapa e liberar a logística.</p>
+                                <Label className="text-slate-300">Taxa Padrão da Produtora/Escritório do Contrato (%)</Label>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-center md:text-left">
@@ -415,8 +415,9 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
                             <div className="ml-4 space-y-2">
                                 <AlertTitle className="text-lg font-black italic uppercase tracking-tighter text-rose-900 leading-none">Logística Bloqueada </AlertTitle>
                                 <AlertDescription className="text-sm font-medium leading-relaxed max-w-2xl opacity-80">
-                                    Por motivos de segurança financeira e compliance da agência, a emissão de passagens, hotéis e contratação de vans
-                                    está **bloqueada** até que o contrato seja formalizado. Por favor, valide o contrato na aba de Contratos para seguir.
+                                    {show.status === "DONE" || show.status === "PAID"
+                                        ? "Este show já teve seu status 'Concluído' ou teve prestação de contas de estrada efetuada. Os números aqui dispostos são faturamento líquido absoluto da produtora e não podem ser maquiados."
+                                        : "Ainda pendente de conclusão oficial ou fechamento de gastos de estrada. Os valores nesta página refletem a estimativa / prévia de lucros momentânea da produtora baseada na precificação."}
                                 </AlertDescription>
                             </div>
                         </Alert>

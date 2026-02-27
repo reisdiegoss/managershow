@@ -12,55 +12,46 @@ import {
     Building2,
     ListFilter,
     MoreHorizontal,
-    Search
+    Search,
+    ShieldCheck
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { useApi } from '@/lib/api';
 import { SaaSTicket } from '@/types/admin';
 import { cn } from '@/lib/utils';
-
-const mockTickets: SaaSTicket[] = [
-    {
-        id: '1',
-        tenant_id: '1',
-        tenant_name: 'Vima Sistemas',
-        subject: 'Erro ao gerar PDF de contrato',
-        description: 'Quando tento gerar o PDF do show #1234, o sistema retorna erro 500.',
-        status: 'EM_ATENDIMENTO',
-        priority: 'URGENTE',
-        created_at: '2026-02-24T10:30:00Z',
-        user_name: 'Diego Reis'
-    },
-    {
-        id: '2',
-        tenant_id: '2',
-        tenant_name: 'Opus Entretenimento',
-        subject: 'Dúvida sobre comissões',
-        description: 'Gostaria de saber como o cálculo de comissão líquida é aplicado no DRE.',
-        status: 'ABERTO',
-        priority: 'MEDIA',
-        created_at: '2026-02-24T14:20:00Z',
-        user_name: 'Ricardo M.'
-    },
-    {
-        id: '3',
-        tenant_id: '3',
-        tenant_name: 'G7 Produções',
-        subject: 'Aumento de limite de usuários',
-        description: 'Precisamos adicionar mais 2 produtores ao sistema, o plano starter está cheio.',
-        status: 'ABERTO',
-        priority: 'ALTA',
-        created_at: '2026-02-23T16:45:00Z',
-        user_name: 'Ana Julia'
-    },
-];
+import { Loader2 } from 'lucide-react';
 
 export default function TicketsAdminPage() {
-    const [selectedTicket, setSelectedTicket] = useState<SaaSTicket | null>(mockTickets[0]);
+    const { getAdminTickets } = useApi();
+    const [tickets, setTickets] = useState<SaaSTicket[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedTicket, setSelectedTicket] = useState<SaaSTicket | null>(null);
     const [reply, setReply] = useState('');
+
+    React.useEffect(() => {
+        loadTickets();
+    }, []);
+
+    const loadTickets = async () => {
+        try {
+            setLoading(true);
+            const response = await getAdminTickets();
+            const items = response.data?.items || [];
+            setTickets(items);
+            if (items.length > 0) {
+                setSelectedTicket(items[0]);
+            }
+        } catch (error) {
+            console.error("Erro ao carregar chamados:", error);
+            setTickets([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
@@ -71,6 +62,14 @@ export default function TicketsAdminPage() {
         }
     };
 
+    if (loading) {
+        return (
+            <div className="flex h-[60vh] items-center justify-center">
+                <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] -m-10">
             <div className="flex h-full border-t border-slate-200">
@@ -79,7 +78,7 @@ export default function TicketsAdminPage() {
                     <div className="p-6 border-b border-slate-100 flex flex-col gap-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-sm font-black italic uppercase text-slate-900 tracking-tight">Central de Support</h3>
-                            <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-black uppercase">12 Novos</Badge>
+                            <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-black uppercase">{tickets.length} Chamados</Badge>
                         </div>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
@@ -88,7 +87,11 @@ export default function TicketsAdminPage() {
                     </div>
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
-                        {mockTickets.map((ticket) => (
+                        {tickets.length === 0 ? (
+                            <div className="p-8 text-center text-slate-400 text-xs uppercase font-bold italic tracking-wider">
+                                Nenhum chamado listado
+                            </div>
+                        ) : tickets.map((ticket) => (
                             <div
                                 key={ticket.id}
                                 onClick={() => setSelectedTicket(ticket)}

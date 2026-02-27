@@ -11,17 +11,21 @@ class FormFieldSchema(BaseModel):
     options: list[str] | None = None # Para tipo select
 
 class FormTemplateBase(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    
     name: str = Field(..., min_length=1, max_length=255)
     type: str = Field(..., min_length=1, max_length=50)
-    schema: list[FormFieldSchema] = Field(default_factory=list)
+    schema: list[FormFieldSchema] = Field(default_factory=list)  # type: ignore[assignment]
 
 class FormTemplateCreate(FormTemplateBase):
     pass
 
 class FormTemplateUpdate(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     name: str | None = Field(None, min_length=1, max_length=255)
     type: str | None = Field(None, min_length=1, max_length=50)
-    schema: list[FormFieldSchema] | None = None
+    schema: list[FormFieldSchema] | None = None  # type: ignore[assignment]
 
 class FormTemplateResponse(FormTemplateBase):
     id: UUID

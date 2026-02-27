@@ -12,7 +12,7 @@ CRUD de shows com:
 import uuid
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, File, UploadFile
 from sqlalchemy import func, select
 from app.core.limiter import limiter
 
