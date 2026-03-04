@@ -14,7 +14,7 @@ import {
     SortableContext,
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useApi } from '@/lib/api';
+import { useClientApi } from '@/lib/api/useClientApi';
 import { CommercialLead, CommercialLeadStatus } from '@/types/crm';
 import { CRMColumn } from './CRMColumn';
 import { CRMLeadCard } from './CRMLeadCard';
@@ -32,7 +32,7 @@ const CRM_COLUMNS: { label: string; status: CommercialLeadStatus }[] = [
 ];
 
 export function CRMKanbanBoard() {
-    const { api, updateLeadStatus } = useApi();
+    const { api, updateLeadStatus } = useClientApi();
     const { toast } = useToast();
     const [leads, setLeads] = useState<CommercialLead[]>([]);
     const [loading, setLoading] = useState(true);
@@ -120,8 +120,8 @@ export function CRMKanbanBoard() {
     if (loading) {
         return (
             <div className="flex h-64 w-full flex-col items-center justify-center gap-4">
-                <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-                <p className="text-sm font-medium text-slate-500 italic">Carregando funil de vendas...</p>
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="text-sm font-medium text-muted-foreground">Carregando funil de vendas...</p>
             </div>
         );
     }
@@ -130,14 +130,14 @@ export function CRMKanbanBoard() {
         <div className="flex flex-col h-full w-full">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900">
-                        Pipeline de <span className="text-blue-600">Vendas</span>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+                        Pipeline de <span className="text-primary">Vendas</span>
                     </h1>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                    <p className="text-sm font-medium text-muted-foreground mt-1">
                         Sondagens e prospecções em andamento
                     </p>
                 </div>
-                <Button onClick={() => setIsModalOpen(true)} className="rounded-2xl bg-blue-600 hover:bg-blue-700 font-bold uppercase italic shadow-lg shadow-blue-200">
+                <Button onClick={() => setIsModalOpen(true)} className="rounded-xl bg-primary hover:bg-primary/90 font-bold shadow-sm text-primary-foreground">
                     <Plus className="mr-2 h-5 w-5" /> Nova Sondagem
                 </Button>
             </div>

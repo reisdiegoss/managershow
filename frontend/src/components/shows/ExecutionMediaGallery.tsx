@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { UploadCloud, Image as ImageIcon, FileVideo, X, Camera, Plus, CheckCircle2, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 
 interface MediaItem {
     id: string;
@@ -25,7 +25,7 @@ export function ExecutionMediaGallery({ showId, initialMedia = [] }: ExecutionMe
     const [isUploading, setIsUploading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { uploadExecutionMedia } = useApi();
+    const { uploadExecutionMedia } = useClientApi();
     const { toast } = useToast();
 
     const handleDrag = (e: React.DragEvent) => {

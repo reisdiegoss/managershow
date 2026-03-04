@@ -23,7 +23,9 @@ async def get_dashboard_stats(db: DbSession):
     total_trial = res_trial.scalar() or 0
 
     # 3. MRR Estimado (Soma dos pagamentos CONFIRMED nos últimos 30 dias)
-    thirty_days_ago = datetime.now() - timedelta(days=30)
+    # Usando timezone.utc para evitar erro de comparação aware/naive
+    from datetime import timezone
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
     stmt_mrr = select(func.sum(SaaSPaymentLog.amount)).where(
         SaaSPaymentLog.event_type.in_(["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"]),
         SaaSPaymentLog.processed_at >= thirty_days_ago
@@ -38,8 +40,8 @@ async def get_dashboard_stats(db: DbSession):
         "mrr": mrr,
         "active_tenants": total_active,
         "trial_tenants": total_trial,
-        "churn_rate": 2.4, # Mock fixo por enquanto, requer lógica de cancelamento histórica
-        "open_tickets": 14 # Mock fixo, requer integração com o model Ticket
+        "churn_rate": 2.4, # Mock fixo por enquanto
+        "open_tickets": 14 # Mock fixo
     }
 
 @router.get("/charts/growth")

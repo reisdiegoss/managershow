@@ -31,7 +31,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from "@/components/ui/use-toast";
 
 const costSchema = z.object({
@@ -53,7 +53,7 @@ interface AddLogisticsCostModalProps {
 export function AddLogisticsCostModal({ showId, onSuccess }: AddLogisticsCostModalProps) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const { api } = useApi();
+    const { api } = useClientApi();
     const { toast } = useToast();
 
     const form = useForm<CostFormValues>({

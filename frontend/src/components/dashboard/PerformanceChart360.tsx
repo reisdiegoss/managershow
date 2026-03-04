@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Wallet, PieChart, Activity, AlertTriangle } from "lucide-react";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ const formatCurrency = (value: number) => {
 };
 
 export function PerformanceChart360() {
-    const { api } = useApi();
+    const { api } = useClientApi();
     const { toast } = useToast();
     const [data, setData] = useState<PerformanceDashboardResponse | null>(null);
     const [loading, setLoading] = useState(true);

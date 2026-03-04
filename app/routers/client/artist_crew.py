@@ -1,7 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, update, delete
-from app.core.dependencies import DbSession, CurrentUser
+from app.core.dependencies import DbSession, CurrentUser, TenantId
 from app.core.tenant_filter import tenant_query
 from app.models.artist_crew import ArtistCrew
 from app.schemas.artist_crew import ArtistCrewCreate, ArtistCrewUpdate, ArtistCrewResponse
@@ -9,7 +9,7 @@ from app.schemas.artist_crew import ArtistCrewCreate, ArtistCrewUpdate, ArtistCr
 router = APIRouter(prefix="/artists", tags=["Client — Equipe do Artista"])
 
 @router.get("/{artist_id}/crew", response_model=list[ArtistCrewResponse])
-async def list_artist_crew(
+async def list_artist_crew(tenant_id: TenantId, 
     artist_id: UUID,
     db: DbSession,
     current_user: CurrentUser,
@@ -17,13 +17,13 @@ async def list_artist_crew(
     """
     Lista todos os membros da equipe fixa de um artista específico.
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
     stmt = tenant_query(ArtistCrew, tenant_id).filter(ArtistCrew.artist_id == artist_id)
     result = await db.execute(stmt)
     return result.scalars().all()
 
 @router.post("/{artist_id}/crew", response_model=ArtistCrewResponse, status_code=status.HTTP_201_CREATED)
-async def create_crew_member(
+async def create_crew_member(tenant_id: TenantId, 
     artist_id: UUID,
     crew_in: ArtistCrewCreate,
     db: DbSession,
@@ -43,7 +43,7 @@ async def create_crew_member(
     return crew_member
 
 @router.patch("/crew/{crew_id}", response_model=ArtistCrewResponse)
-async def update_crew_member(
+async def update_crew_member(tenant_id: TenantId, 
     crew_id: UUID,
     crew_in: ArtistCrewUpdate,
     db: DbSession,
@@ -52,7 +52,7 @@ async def update_crew_member(
     """
     Atualiza dados de um membro da equipe (ex: aumento de cachê).
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
     # Verificar existência e tenant
     stmt = tenant_query(ArtistCrew, tenant_id).filter(ArtistCrew.id == crew_id)
     result = await db.execute(stmt)
@@ -70,7 +70,7 @@ async def update_crew_member(
     return crew_member
 
 @router.delete("/crew/{crew_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_crew_member(
+async def delete_crew_member(tenant_id: TenantId, 
     crew_id: UUID,
     db: DbSession,
     current_user: CurrentUser,
@@ -78,7 +78,7 @@ async def delete_crew_member(
     """
     Remove um membro da equipe fixa do artista.
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
     stmt = tenant_query(ArtistCrew, tenant_id).filter(ArtistCrew.id == crew_id)
     result = await db.execute(stmt)
     crew_member = result.scalar_one_or_none()

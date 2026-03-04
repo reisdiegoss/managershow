@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, HTTPExc
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from app.core.dependencies import CurrentUser, DbSession
+from app.core.dependencies import CurrentUser, DbSession, TenantId
 from app.core.limiter import limiter
 from app.core.permissions import require_permissions
 from app.exceptions import ShowNotFoundException
@@ -59,7 +59,7 @@ class ExtraExpense(BaseModel):
 
 @router.post("/checkin", status_code=201)
 @limiter.limit("1/second")
-async def batch_checkin(
+async def batch_checkin(tenant_id: TenantId, 
     request: Request,
     show_id: uuid.UUID,
     data: CheckinBatch,
@@ -72,7 +72,7 @@ async def batch_checkin(
     Recebe array de IDs (offline-sync do PWA mobile).
     Cada ID gera um registro de presença.
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
 
     # Verificar show
     stmt = select(Show).where(Show.id == show_id, Show.tenant_id == tenant_id)
@@ -130,7 +130,7 @@ async def batch_checkin(
 
 @router.post("/extras", status_code=201)
 @limiter.limit("1/second")
-async def add_extra_expense(
+async def add_extra_expense(tenant_id: TenantId, 
     request: Request,
     show_id: uuid.UUID,
     db: DbSession,
@@ -143,7 +143,7 @@ async def add_extra_expense(
     """
     Lança uma despesa extra não prevista com UPLOAD de recibo (Etapa 5).
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
     from app.config import get_settings
     settings = get_settings()
 
@@ -205,7 +205,7 @@ async def add_extra_expense(
 
 
 @router.post("/close", status_code=200)
-async def close_road(
+async def close_road(tenant_id: TenantId, 
     show_id: uuid.UUID,
     db: DbSession,
     current_user: User = Depends(require_permissions("can_close_road")),
@@ -216,7 +216,7 @@ async def close_road(
     REGRA DA BÍBLIA (Regra 03): Após o fechamento, o DRE pode ser
     consolidado (Etapa 6). Antes disso, apenas DRE provisório.
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
 
     stmt = select(Show).where(Show.id == show_id, Show.tenant_id == tenant_id)
     result = await db.execute(stmt)

@@ -9,7 +9,7 @@ import { Q } from '@nozbe/watermelondb'
 import withObservables from '@nozbe/with-observables'
 import ShowCheckin from '@/lib/db/models/ShowCheckin'
 import { useToast } from '@/components/ui/use-toast'
-import { useApi } from '@/lib/api'
+import { useClientApi } from '@/lib/api/useClientApi';
 
 interface CheckInListProps {
     showId: string
@@ -18,7 +18,7 @@ interface CheckInListProps {
 
 const BaseCheckInList = ({ showId, checkins }: CheckInListProps) => {
     const { toast } = useToast()
-    const { api } = useApi()
+    const { api } = useClientApi()
     const [isSyncing, setIsSyncing] = useState(false)
     const [isOffline, setIsOffline] = useState(!navigator.onLine)
 

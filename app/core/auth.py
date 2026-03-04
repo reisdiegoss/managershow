@@ -66,7 +66,7 @@ async def get_current_user(
     # --- Modo Desenvolvimento: bypass com X-Dev-User-Id ---
     if settings.app_env == "development" and x_dev_user_id:
         try:
-            return await _get_user_by_id(db, uuid.UUID(x_dev_user_id))
+            return await _get_active_user_with_relations(db, user_id=uuid.UUID(x_dev_user_id))
         except ValueError:
             raise InvalidTokenException()
 
@@ -84,7 +84,7 @@ async def get_current_user(
         raise InvalidTokenException()
 
     # Buscar usuário pelo clerk_id
-    return await _get_user_by_clerk_id(db, clerk_id)
+    return await _get_active_user_with_relations(db, clerk_id=clerk_id)
 
 
 async def get_current_super_admin(
@@ -107,8 +107,12 @@ async def get_current_super_admin(
     return current_user
 
 
-async def _get_user_by_clerk_id(db: AsyncSession, clerk_id: str) -> User:
-    """Busca o User no banco pelo clerk_id do Clerk."""
+async def _get_active_user_with_relations(
+    db: AsyncSession, 
+    clerk_id: str | None = None, 
+    user_id: uuid.UUID | None = None
+) -> User:
+    """Busca o usuário com todos os relacionamentos necessários carregados."""
     stmt = (
         select(User)
         .options(
@@ -116,56 +120,21 @@ async def _get_user_by_clerk_id(db: AsyncSession, clerk_id: str) -> User:
             selectinload(User.tenant),
             selectinload(User.allowed_artists)
         )
-        .where(User.clerk_id == clerk_id)
     )
+    
+    if clerk_id:
+        stmt = stmt.where(User.clerk_id == clerk_id)
+    elif user_id:
+        stmt = stmt.where(User.id == user_id)
+    else:
+        raise ValueError("clerk_id ou user_id deve ser fornecido.")
+
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 
     if not user:
-        from app.config import get_settings
-        settings = get_settings()
-        
-        # --- Auto-Heal Clerk ID (Modo Dev) ---
-        if settings.app_env == "development":
-            stmt_admin = select(User).where(User.email == "contato@vimasistemas.com.br")
-            admin_user = (await db.execute(stmt_admin)).scalar_one_or_none()
-            
-            if admin_user:
-                # Atualizando forçosamente o clerk_id do Admin para o token atual de dev
-                admin_user.clerk_id = clerk_id
-                await db.commit()
-                await db.refresh(admin_user)
-                _validate_user_access(admin_user)
-                return admin_user
-
-        raise HTTPException(
-            status_code=404,
-            detail="Usuário não encontrado no sistema. Solicite acesso ao administrador.",
-        )
-
-    _validate_user_access(user)
-    return user
-
-
-async def _get_user_by_id(db: AsyncSession, user_id: uuid.UUID) -> User:
-    """Busca o User no banco pelo ID interno (modo dev)."""
-    stmt = (
-        select(User)
-        .options(
-            selectinload(User.role),
-            selectinload(User.tenant),
-            selectinload(User.allowed_artists)
-        )
-        .where(User.id == user_id)
-    )
-    result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Usuário com ID {user_id} não encontrado (modo dev).",
-        )
+        detail = "Usuário não encontrado no sistema." if clerk_id else f"Usuário com ID {user_id} não encontrado."
+        raise HTTPException(status_code=404, detail=detail)
 
     _validate_user_access(user)
     return user
@@ -179,5 +148,6 @@ def _validate_user_access(user: User) -> None:
             detail="Sua conta está desativada. Contate o administrador.",
         )
 
+    # Nota: User.tenant deve estar carregado (selectinload) na query original
     if user.tenant and user.tenant.status == TenantStatus.SUSPENDED:
         raise TenantSuspendedException()

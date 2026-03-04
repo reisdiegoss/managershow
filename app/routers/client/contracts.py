@@ -74,6 +74,7 @@ async def list_contracts(
 async def validate_contract(
     show_id: uuid.UUID,
     db: DbSession,
+    tenant_id: TenantId,
     current_user: User = Depends(require_permissions("can_approve_contracts")),
 ) -> dict:
     """
@@ -82,7 +83,7 @@ async def validate_contract(
     Seta contract_validated = True, destravando lançamento de despesas.
     O status do show progride para ASSINADO.
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência (respeita God Mode)
 
     stmt = tenant_query(Show, tenant_id).where(Show.id == show_id)
     result = await db.execute(stmt)

@@ -128,10 +128,11 @@ async def add_timeline_item(
     show_id: uuid.UUID,
     payload: TimelineItemCreate,
     db: DbSession,
+    tenant_id: TenantId,
     current_user: CurrentUser,
 ) -> LogisticsTimeline:
     """Adiciona um item à timeline do Day Sheet com inteligência climática."""
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
 
     stmt = tenant_query(Show, tenant_id).where(Show.id == show_id)
     result = await db.execute(stmt)
@@ -169,10 +170,11 @@ async def update_timeline_item(
     item_id: uuid.UUID,
     payload: TimelineItemCreate,
     db: DbSession,
+    tenant_id: TenantId,
     current_user: CurrentUser,
 ) -> LogisticsTimeline:
     """Atualiza um item da timeline."""
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
     
     stmt = tenant_query(LogisticsTimeline, tenant_id).where(
         LogisticsTimeline.id == item_id,
@@ -194,7 +196,7 @@ async def update_timeline_item(
 
 
 @router.post("/smart-sync", summary="Smart Logistics Sync", status_code=200)
-async def smart_sync_logistics(
+async def smart_sync_logistics(tenant_id: TenantId, 
     show_id: uuid.UUID,
     db: DbSession,
     current_user: CurrentUser,
@@ -204,7 +206,7 @@ async def smart_sync_logistics(
     - Calcula rotas (Google Maps) entre itens sequenciais.
     - Atualiza clima (OpenWeather) para todos os itens.
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
     from app.services.logistics_service import LogisticsService
 
     # 1. Busca Show e Timeline
@@ -253,7 +255,7 @@ async def smart_sync_logistics(
 
 
 @router.post("/publish", summary="Publish Day Sheet & Notify Crew", status_code=200)
-async def publish_daysheet(
+async def publish_daysheet(tenant_id: TenantId, 
     show_id: uuid.UUID,
     db: DbSession,
     current_user: CurrentUser,
@@ -262,7 +264,7 @@ async def publish_daysheet(
     Publica o Day Sheet e dispara notificações em background para a equipe.
     Este é o 'Information Push' que retira o peso operacional das costas do produtor.
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
 
     # 1. Busca o Show e valida permissão
     stmt = tenant_query(Show, tenant_id).where(Show.id == show_id)
@@ -292,14 +294,14 @@ async def publish_daysheet(
 
 
 @router.post("/finalize", summary="Finalize Day Sheet", status_code=200)
-async def finalize_daysheet(
+async def finalize_daysheet(tenant_id: TenantId, 
     show_id: uuid.UUID,
     db: DbSession,
     current_user: CurrentUser,
 ) -> dict:
 
     """Finaliza o Day Sheet → status EM_ESTRADA."""
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
 
     stmt = tenant_query(Show, tenant_id).where(Show.id == show_id)
     result = await db.execute(stmt)

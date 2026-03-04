@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { Show } from "@/types/show";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +63,7 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
     const [loadingTransactions, setLoadingTransactions] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [syncing, setSyncing] = useState(false);
-    const { api, updateShowStatus, uploadContract } = useApi();
+    const { api, updateShowStatus, uploadContract } = useClientApi();
     const { toast } = useToast();
 
     const handleSync = async () => {
@@ -533,7 +533,7 @@ export function ShowDetailsClient({ showId }: ShowDetailsClientProps) {
  * Componente Auxiliar para listar templates dinâmicos de Show
  */
 function DynamicTemplatesList({ showId }: { showId: string }) {
-    const { api } = useApi();
+    const { api } = useClientApi();
     const [templates, setTemplates] = useState<DocumentTemplate[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);

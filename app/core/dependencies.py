@@ -11,7 +11,7 @@ Centraliza dependências comuns usadas em múltiplos routers:
 import uuid
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Header
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,18 +28,22 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 async def get_current_tenant_id(
     current_user: CurrentUser,
+    x_impersonate_tenant_id: str | None = Header(None, alias="X-Impersonate-Tenant-Id"),
 ) -> uuid.UUID:
     """
-    Extrai o tenant_id do usuário logado.
+    Extrai o tenant_id do usuário logado ou do header de simulação (God Mode).
 
-    REGRA DA ARCHITECTURE.md: Toda query DEVE incluir tenant_id
-    nos filtros para garantir isolamento absoluto entre clientes.
-
-    Uso no endpoint:
-        async def listar_shows(
-            tenant_id: uuid.UUID = Depends(get_current_tenant_id)
-        ):
+    Regra: Se o usuário for da Vima Sistemas (@vimasistemas.com.br) e o header
+    estiver presente, usamos o ID do header para permitir o espelhamento.
     """
+    is_vima_admin = current_user.email and current_user.email.endswith("@vimasistemas.com.br")
+
+    if is_vima_admin and x_impersonate_tenant_id:
+        try:
+            return uuid.UUID(x_impersonate_tenant_id)
+        except ValueError:
+            pass
+
     return current_user.tenant_id
 
 

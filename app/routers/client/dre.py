@@ -13,7 +13,7 @@ from dataclasses import asdict
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 
-from app.core.dependencies import DbSession
+from app.core.dependencies import DbSession, TenantId
 from app.core.permissions import require_permissions
 from app.core.tenant_filter import tenant_query
 from app.exceptions import ShowNotFoundException
@@ -25,7 +25,7 @@ router = APIRouter(prefix="/shows/{show_id}/dre", tags=["Client — DRE"])
 
 
 @router.get("/", summary="Get DRE")
-async def get_dre(
+async def get_dre(tenant_id: TenantId, 
     show_id: uuid.UUID,
     db: DbSession,
     current_user: User = Depends(require_permissions("can_view_dre")),
@@ -36,7 +36,7 @@ async def get_dre(
     Toda a matemática financeira está isolada em finance_service.py.
     Se road_closed == False, retorna DRE provisório (estimativa).
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
 
     # --- Buscar Show com filtro multi-tenant ---
     stmt = tenant_query(Show, tenant_id).where(Show.id == show_id)

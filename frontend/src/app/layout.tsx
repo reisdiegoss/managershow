@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const manrope = Manrope({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Manager Show - Sistema de Gestão Artística",
@@ -29,28 +29,28 @@ export default function RootLayout({
           logoPlacement: "inside",
         },
         variables: {
-          colorPrimary: "#4f46e5", // indigo-600
-          colorBackground: "#0f172a", // slate-900
-          colorText: "#f8fafc", // slate-50
+          colorPrimary: "#534be7", // Manrope Lavender
+          colorBackground: "#ffffff", // Light background
+          colorText: "#0f172a", // Slate-900
           colorTextOnPrimaryBackground: "#ffffff",
-          colorInputBackground: "#1e293b", // slate-800
-          colorInputText: "#f8fafc", // slate-50
-          colorDanger: "#e11d48", // rose-600
-          borderRadius: "0.75rem",
+          colorInputBackground: "#f8fafc", // Slate-50
+          colorInputText: "#0f172a", // Slate-900
+          colorDanger: "#ef4444", // Red-500
+          borderRadius: "0.5rem", // 8px
         },
         elements: {
-          card: "shadow-2xl border border-slate-800",
-          headerTitle: "font-black italic text-slate-50",
-          headerSubtitle: "text-slate-400 font-medium",
-          socialButtonsBlockButton: "border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200",
-          formButtonPrimary: "bg-indigo-600 hover:bg-indigo-700 shadow-md font-bold uppercase tracking-wide",
-          formFieldInput: "bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500",
-          formFieldLabel: "text-slate-300 font-bold",
-          dividerLine: "bg-slate-800",
-          dividerText: "text-slate-500",
-          footerActionLink: "text-indigo-400 hover:text-indigo-300 font-bold",
-          identityPreviewText: "text-slate-300",
-          identityPreviewEditButtonIcon: "text-indigo-400"
+          card: "shadow-xl border border-slate-200 bg-white",
+          headerTitle: "font-black text-slate-900 tracking-tight",
+          headerSubtitle: "text-slate-500 font-medium",
+          socialButtonsBlockButton: "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800",
+          formButtonPrimary: "bg-[#534be7] hover:bg-[#4338ca] shadow-md font-bold uppercase tracking-wide",
+          formFieldInput: "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400",
+          formFieldLabel: "text-slate-700 font-bold",
+          dividerLine: "bg-slate-200",
+          dividerText: "text-slate-400",
+          footerActionLink: "text-[#534be7] hover:text-[#4338ca] font-bold",
+          identityPreviewText: "text-slate-600",
+          identityPreviewEditButtonIcon: "text-[#534be7]"
         }
       }}
     >
@@ -62,10 +62,10 @@ export default function RootLayout({
           <meta name="theme-color" content="#020617" />
           <link rel="apple-touch-icon" href="/icon-192x192.png" />
         </head>
-        <body className={`${inter.className} antialiased selection:bg-indigo-500/30`} suppressHydrationWarning>
+        <body className={`${manrope.className} antialiased selection:bg-[#534be7]/20`} suppressHydrationWarning>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="light"
             enableSystem
             disableTransitionOnChange
           >

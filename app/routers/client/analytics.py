@@ -1,13 +1,12 @@
 from datetime import date
 from typing import List
-from typing import List
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import CurrentUser, DbSession
+from app.core.dependencies import CurrentUser, DbSession, TenantId
 from app.core.tenant_filter import tenant_query
 from app.models.financial_transaction import FinancialTransaction, TransactionType
 from app.models.show import Show
@@ -36,6 +35,7 @@ class PerformanceDashboardResponse(BaseModel):
 async def get_performance_by_artist(
     current_user: CurrentUser,
     db: DbSession,
+    tenant_id: TenantId,
     start_date: date | None = None,
     end_date: date | None = None,
 ):
@@ -43,7 +43,7 @@ async def get_performance_by_artist(
     Agrupa todo o Faturamento (Baseado nas Notas e Real Cache) vs Custos Reais (Etapa 3/5)
     e com isso constrói um Cockpit 360 para a Tela de Dashboards.
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência (respeita God Mode)
 
     # O PostgreSQL fará o trabalho pesado:
     # Pra cada artista, somamos a quantidade de shows realizados, 

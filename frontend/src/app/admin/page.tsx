@@ -1,209 +1,177 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Activity, ArrowDownRight, ArrowUpRight, DollarSign, LifeBuoy, TrendingUp, Users
+    TrendingUp,
+    Users,
+    DollarSign,
+    Activity,
+    ArrowUpRight,
+    ArrowDownRight,
+    ShieldCheck,
+    Building2,
+    Package
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-} from 'recharts';
-import { useApi } from '@/lib/api';
+import { useAdminApi } from '@/lib/api/useAdminApi';
 import { cn } from '@/lib/utils';
 
 interface DashboardStats {
     mrr: number;
     active_tenants: number;
-    trial_tenants: number;
-    churn_rate: number;
-    open_tickets: number;
+    total_users: number;
+    active_plans: number;
+    growth_rate: number;
+    recent_transactions: any[];
 }
 
 export default function AdminDashboardPage() {
-    const { getAdminStats, getAdminGrowthChart } = useApi();
-    const [stats, setStats] = React.useState<DashboardStats | null>(null);
-    const [chartData, setChartData] = React.useState<any[]>([]);
-    const [loading, setLoading] = React.useState(true);
+    const { getAdminStats } = useAdminApi();
+    const [stats, setStats] = useState<DashboardStats | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    React.useEffect(() => {
-        loadDashboardData();
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await getAdminStats();
+                setStats(response.data);
+            } catch (error) {
+                console.error("Erro ao carregar KPIs do Admin:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const loadDashboardData = async () => {
-        try {
-            setLoading(true);
-            const [statsRes, chartRes] = await Promise.all([
-                getAdminStats(),
-                getAdminGrowthChart()
-            ]);
-            setStats(statsRes.data);
-            setChartData(chartRes.data);
-        } catch (error) {
-            console.error("Erro ao carregar dados do dashboard:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex h-[60vh] items-center justify-center">
-                <Activity className="h-10 w-10 animate-spin text-emerald-500" />
-            </div>
-        );
-    }
+    const kpis = [
+        {
+            label: 'MRR (Mensal Recorrente)',
+            value: loading ? '...' : `R$ ${stats?.mrr?.toLocaleString('pt-BR') || '0,00'}`,
+            icon: DollarSign,
+            color: 'text-emerald-500',
+            bg: 'bg-emerald-500/10',
+            trend: stats?.growth_rate !== undefined ? `${stats.growth_rate}%` : '+5.2%',
+            trendUp: true
+        },
+        {
+            label: 'Clientes Ativos',
+            value: loading ? '...' : stats?.active_tenants || '0',
+            icon: Building2,
+            color: 'text-blue-500',
+            bg: 'bg-blue-500/10',
+            trend: '+12%',
+            trendUp: true
+        },
+        {
+            label: 'Usuários Totais',
+            value: loading ? '...' : stats?.total_users || '0',
+            icon: Users,
+            color: 'text-purple-500',
+            bg: 'bg-purple-500/10',
+            trend: '+8%',
+            trendUp: true
+        },
+        {
+            label: 'Planos SaaS',
+            value: loading ? '...' : stats?.active_plans || '0',
+            icon: Package,
+            color: 'text-amber-500',
+            bg: 'bg-amber-500/10',
+            trend: 'Estável',
+            trendUp: true
+        },
+    ];
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-8 pb-12">
+            {/* Welcome Header */}
+            <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2 block">Inteligência de Mercado</span>
+                <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+                    Bem-vindo à <span className="text-emerald-600 dark:text-emerald-400">Torre de Controle</span>
+                </h1>
+                <p className="mt-2 text-sm font-medium text-muted-foreground">
+                    Monitore o crescimento do Manager Show em tempo real. Toda a lógica financeira e métricas de MRR são processadas no Backend para integridade absoluta.
+                </p>
+            </div>
 
-            <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-800 mb-2 mt-8">Panorama SaaS (Manager Show)</h2>
-            <p className="text-sm font-bold text-slate-400 mb-6">Métricas Administrativas de Clientes Integrados no Sistema</p>
-
-            {/* KPI Cards */}
+            {/* KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                    {
-                        title: 'MRR Atual',
-                        value: stats ? `R$ ${stats.mrr.toLocaleString('pt-BR')}` : 'R$ 0',
-                        sub: '+12.5% vs mês anterior',
-                        icon: DollarSign,
-                        color: 'text-emerald-500',
-                        trend: 'up'
-                    },
-                    {
-                        title: 'Taxa de Churn',
-                        value: stats ? `${stats.churn_rate}%` : '0%',
-                        sub: '-0.8% melhoria',
-                        icon: TrendingUp,
-                        color: 'text-rose-500',
-                        trend: 'down'
-                    },
-                    {
-                        title: 'Clientes Ativos',
-                        value: stats ? stats.active_tenants.toString() : '0',
-                        sub: `${stats?.trial_tenants || 0} em período Trial`,
-                        icon: Users,
-                        color: 'text-blue-500',
-                        trend: 'up'
-                    },
-                    {
-                        title: 'Tickets Abertos',
-                        value: stats ? stats.open_tickets.toString() : '0',
-                        sub: 'Aguardando interação',
-                        icon: LifeBuoy,
-                        color: 'text-amber-500',
-                        trend: 'none'
-                    },
-                ].map((kpi, idx) => (
-                    <Card key={idx} className="rounded-[2.5rem] border-slate-200/60 shadow-sm overflow-hidden group hover:border-emerald-200 transition-all">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-8">
-                            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                {kpi.title}
-                            </CardTitle>
-                            <div className={cn("p-2 rounded-xl bg-slate-50 group-hover:bg-emerald-50 transition-colors", kpi.color)}>
-                                <kpi.icon size={18} />
+                {kpis.map((kpi, idx) => (
+                    <div
+                        key={idx}
+                        className="flex flex-col p-6 rounded-xl border border-border bg-card shadow-sm transition-all duration-300"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <div className={cn("p-2.5 rounded-lg", kpi.bg)}>
+                                <kpi.icon className={cn("w-5 h-5", kpi.color)} />
                             </div>
-                        </CardHeader>
-                        <CardContent className="px-8 pb-8">
-                            <div className="text-3xl font-black italic tracking-tighter text-slate-900 mb-1">{kpi.value}</div>
-                            <div className="flex items-center gap-1.5 pt-1">
-                                {kpi.trend === 'up' && <ArrowUpRight size={14} className="text-emerald-500" />}
-                                {kpi.trend === 'down' && <ArrowDownRight size={14} className="text-emerald-500" />}
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight italic">
-                                    {kpi.sub}
-                                </span>
+                            <div className={cn(
+                                "flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider",
+                                kpi.trendUp ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                            )}>
+                                {kpi.trendUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                                {kpi.trend}
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{kpi.label}</span>
+                        <span className="text-3xl font-extrabold tracking-tight tabular-nums text-foreground">{kpi.value}</span>
+                    </div>
                 ))}
             </div>
 
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
-                <Card className="lg:col-span-2 rounded-[3rem] border-slate-200/60 shadow-sm p-8">
-                    <div className="flex justify-between items-start mb-10">
+            {/* Main Charts & Activity Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Real-time Activity */}
+                <div className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h3 className="text-lg font-black italic uppercase tracking-tight text-slate-900">Crescimento de Assinaturas</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Sincronia Semestral de Novos Clientes</p>
+                            <h3 className="text-base font-bold text-foreground">Transações Recentes</h3>
+                            <p className="text-xs font-medium text-muted-foreground mt-0.5">Processamento Asaas Direto</p>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                                <span className="text-[9px] font-black uppercase text-slate-500">Novas</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="h-3 w-3 rounded-full bg-slate-200" />
-                                <span className="text-[9px] font-black uppercase text-slate-500">Cancelamentos</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style={{ width: '100%', height: 350 }}>
-                        <ResponsiveContainer width="100%" height={350}>
-                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }}
-                                />
-                                <Tooltip
-                                    cursor={{ fill: '#f8fafc' }}
-                                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
-                                />
-                                <Bar dataKey="assinaturas" fill="#10b981" radius={[6, 6, 0, 0]} barSize={35} />
-                                <Bar dataKey="cancelamentos" fill="#e2e8f0" radius={[6, 6, 0, 0]} barSize={35} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </Card>
-
-                <Card className="rounded-[3rem] border-slate-200/60 shadow-sm p-8 bg-slate-900 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8 opacity-10">
-                        <Activity size={180} />
-                    </div>
-
-                    <div className="relative z-10">
-                        <h3 className="text-lg font-black italic uppercase tracking-tight mb-2">Saúde do Sistema</h3>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-10">Monitoramento em Tempo Real</p>
-
-                        <div className="space-y-8">
-                            {[
-                                { label: 'Uptime API', value: '99.98%', color: 'bg-emerald-500' },
-                                { label: 'Sync Redis', value: 'Ativo', color: 'bg-emerald-500' },
-                                { label: 'Worker Latency', value: '45ms', color: 'bg-emerald-500' },
-                                { label: 'DB Connections', value: '12%', color: 'bg-blue-500' },
-                            ].map((stat, idx) => (
-                                <div key={idx} className="flex flex-col gap-2">
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">{stat.label}</span>
-                                        <span className="text-xs font-black italic">{stat.value}</span>
-                                    </div>
-                                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                        <div className={cn("h-full rounded-full w-[85%]", stat.color)} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <button className="w-full mt-10 py-4 rounded-2xl bg-white text-slate-900 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all">
-                            Ver Logs do Servidor
+                        <button className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 text-xs font-bold transition-colors">
+                            Ver Tudo
                         </button>
                     </div>
-                </Card>
+
+                    <div className="space-y-4">
+                        {loading ? (
+                            <div className="h-32 flex items-center justify-center">
+                                <span className="text-sm font-medium text-muted-foreground animate-pulse">Carregando Fluxo de Dados...</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center p-12 border border-dashed border-border rounded-lg">
+                                <span className="text-sm text-muted-foreground">Nenhuma transação no período de auditoria</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* System Health */}
+                <div className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col items-center justify-center text-center">
+                    <div className="relative mb-6">
+                        <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-[20px] animate-pulse" />
+                        <div className="relative w-16 h-16 rounded-full border border-emerald-500/30 flex items-center justify-center bg-background">
+                            <Activity className="w-8 h-8 text-emerald-500" />
+                        </div>
+                    </div>
+                    <h3 className="text-base font-bold text-foreground mb-1">Health Status</h3>
+                    <p className="text-xs font-medium text-muted-foreground leading-relaxed px-4">
+                        Hardware & SaaS Engine operando com latência otimizada.
+                    </p>
+
+                    <div className="mt-6 w-full space-y-3">
+                        <div className="flex items-center justify-between px-4 py-2 rounded-lg border border-border bg-background">
+                            <span className="text-xs font-medium text-muted-foreground">Backend API</span>
+                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Estável</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-2 rounded-lg border border-border bg-background">
+                            <span className="text-xs font-medium text-muted-foreground">Evolution API</span>
+                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Online</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

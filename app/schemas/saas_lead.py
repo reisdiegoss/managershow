@@ -1,5 +1,5 @@
 """
-Manager Show — Schemas: Lead / CRM (Pydantic V2)
+Manager Show — Schemas: SaaS Lead / CRM (Pydantic V2)
 """
 
 from datetime import datetime
@@ -7,11 +7,11 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.lead import LeadStatus
+from app.models.saas_lead import SaaSLeadStatus
 
 
-class LeadCreate(BaseModel):
-    """Schema de criação de lead."""
+class SaaSLeadCreate(BaseModel):
+    """Schema de criação de lead do SaaS."""
     company_name: str = Field(..., min_length=2, max_length=255)
     contact_name: str = Field(..., min_length=2, max_length=255)
     email: str | None = Field(None, max_length=255)
@@ -21,20 +21,19 @@ class LeadCreate(BaseModel):
     notes: str | None = None
 
 
-class LeadUpdate(BaseModel):
-    """Schema de atualização parcial de lead."""
+class SaaSLeadUpdate(BaseModel):
+    """Schema de atualização parcial."""
     company_name: str | None = Field(None, min_length=2, max_length=255)
     contact_name: str | None = None
     email: str | None = None
     phone: str | None = None
     document: str | None = None
-    status: LeadStatus | None = None
+    status: SaaSLeadStatus | None = None
     source: str | None = None
     notes: str | None = None
 
 
-class LeadResponse(BaseModel):
-    """Schema de resposta do lead."""
+class SaaSLeadResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -43,7 +42,7 @@ class LeadResponse(BaseModel):
     email: str | None
     phone: str | None
     document: str | None
-    status: LeadStatus
+    status: SaaSLeadStatus
     source: str | None
     notes: str | None
     created_at: datetime

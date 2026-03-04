@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { Mic2, ChevronDown, Check } from "lucide-react";
 import {
     Popover,
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  * Implementa "Ocultação Inteligente": Se o usuário tem apenas 1 artista, o componente fica oculto.
  */
 export function GlobalArtistSelector() {
-    const { api } = useApi();
+    const { api } = useClientApi();
     const [artists, setArtists] = useState<any[]>([]);
     const [selectedArtist, setSelectedArtist] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -52,20 +52,20 @@ export function GlobalArtistSelector() {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <button className="flex items-center gap-2 rounded-xl bg-slate-800/50 px-4 py-2 border border-white/5 hover:bg-slate-800 transition-all group">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-400">
-                        <Mic2 className="h-3.5 w-3.5" />
+                <button className="flex items-center gap-2 rounded-xl bg-card border border-border px-3 py-2 hover:bg-muted transition-colors group shadow-sm">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Mic2 className="h-4 w-4" />
                     </div>
-                    <div className="text-left">
-                        <p className="text-[8px] font-black uppercase text-slate-500 tracking-widest leading-none mb-0.5">Artista Ativo</p>
-                        <p className="text-[10px] font-bold text-slate-200 uppercase tracking-tight italic flex items-center gap-1">
+                    <div className="text-left hidden sm:block">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">Artista Ativo</p>
+                        <p className="text-sm font-bold text-foreground flex items-center gap-1">
                             {selectedArtist?.name || "Selecione..."}
-                            <ChevronDown className="h-3 w-3 text-slate-500 group-hover:text-indigo-400" />
+                            <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                         </p>
                     </div>
                 </button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-2 bg-slate-900 border-white/10 rounded-2xl shadow-2xl backdrop-blur-xl">
+            <PopoverContent className="w-[220px] p-2 bg-popover border border-border rounded-xl shadow-xl">
                 <div className="space-y-1">
                     {artists.map((artist) => {
                         const isSelected = selectedArtist?.id === artist.id;
@@ -78,14 +78,14 @@ export function GlobalArtistSelector() {
                                     window.dispatchEvent(new Event("artist_changed")); // Notifica outros componentes
                                 }}
                                 className={cn(
-                                    "flex w-full items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase transition-all",
+                                    "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
                                     isSelected
-                                        ? "bg-indigo-600 text-white"
-                                        : "text-slate-400 hover:bg-white/5 hover:text-white"
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-foreground hover:bg-muted"
                                 )}
                             >
-                                {artist.name}
-                                {isSelected && <Check className="h-3 w-3" />}
+                                <span className="truncate">{artist.name}</span>
+                                {isSelected && <Check className="h-4 w-4 shrink-0" />}
                             </button>
                         );
                     })}

@@ -30,7 +30,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useApi } from '@/lib/api';
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -63,7 +63,7 @@ interface NewLeadModalProps {
 }
 
 export function NewLeadModal({ isOpen, onClose, onSuccess }: NewLeadModalProps) {
-    const { api } = useApi();
+    const { api } = useClientApi();
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
     const [sellers, setSellers] = useState<{ id: string; name: string }[]>([]);

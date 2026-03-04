@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Receipt, Camera, Loader2, Plus } from "lucide-react";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ export function QuickExpenseForm({ showId, onSuccess }: QuickExpenseFormProps) {
     const [loading, setLoading] = useState(false);
     const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
     const [showCamera, setShowCamera] = useState(false);
-    const { api } = useApi();
+    const { api } = useClientApi();
     const { toast } = useToast();
 
     const form = useForm<QuickExpenseValues>({

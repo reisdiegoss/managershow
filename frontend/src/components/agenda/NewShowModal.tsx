@@ -21,7 +21,7 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from "@/components/ui/use-toast";
 import { ProfitLight } from "./ProfitLight";
 import { Plus, Calculator, Sparkles } from "lucide-react";
@@ -52,7 +52,7 @@ export function NewShowModal({ onShowCreated }: { onShowCreated?: () => void }) 
     const [flightsCount, setFlightsCount] = useState(0);
     const [daysHotel, setDaysHotel] = useState(1);
 
-    const { simulateShow, createShow } = useApi();
+    const { simulateShow, createShow } = useClientApi();
     const { toast } = useToast();
 
     const form = useForm<ShowFormValues>({

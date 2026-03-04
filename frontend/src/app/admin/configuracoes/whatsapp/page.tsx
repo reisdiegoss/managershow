@@ -20,8 +20,9 @@ import {
     PlusCircle,
     X
 } from 'lucide-react';
-import { useApi } from '@/lib/api';
+import { useAdminApi } from '@/lib/api/useAdminApi';
 import { useToast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
 import {
     Card,
     CardContent,
@@ -54,7 +55,7 @@ type WhatsAppFormValues = z.infer<typeof whatsappSchema>;
 type ConnectionStatus = 'CONNECTED' | 'DISCONNECTED' | 'NOT_FOUND' | 'ERROR' | 'NOT_CONFIGURED';
 
 export default function WhatsAppSettingsPage() {
-    const { api, getWhatsAppQR, createWhatsAppInstance, logoutWhatsApp } = useApi();
+    const { api, getWhatsAppQR, createWhatsAppInstance, logoutWhatsApp } = useAdminApi();
     const { toast } = useToast();
 
     const [loading, setLoading] = useState(true);
@@ -241,7 +242,7 @@ export default function WhatsAppSettingsPage() {
                         <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                             <MessageSquare className="h-6 w-6 text-emerald-500" />
                         </div>
-                        <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">
                             Configuração <span className="text-emerald-500">WhatsApp</span>
                         </h1>
                     </div>
@@ -249,31 +250,31 @@ export default function WhatsAppSettingsPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => loadSettings()}
-                        className="text-slate-500 hover:text-white"
+                        className="text-muted-foreground hover:text-foreground"
                     >
                         <RefreshCw className="h-4 w-4 mr-2" /> Atualizar Status
                     </Button>
                 </div>
-                <p className="text-sm font-medium text-slate-400 max-w-2xl">
+                <p className="text-sm font-medium text-muted-foreground max-w-2xl">
                     Gestão centralizada da Evolution API v2. Controle instâncias, gere QR Codes e monitore a saúde da integração.
                 </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
-                        <CardHeader className="border-b border-white/5 bg-emerald-500/5">
-                            <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
+                    <Card className="glass-card border-border shadow-sm overflow-hidden bg-card/40">
+                        <CardHeader className="border-b border-border bg-emerald-500/5">
+                            <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                                 <Zap className="h-5 w-5 text-emerald-500" />
                                 Credenciais Evolution API
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-8">
                             <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-                                <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/50 border border-white/5 mb-4">
+                                <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 border border-border mb-4">
                                     <div className="space-y-0.5">
-                                        <Label className="text-base font-bold text-white">Envio Global</Label>
-                                        <p className="text-xs text-slate-500">Habilita/Desabilita notificações via WhatsApp em todo o SaaS.</p>
+                                        <Label className="text-base font-bold text-foreground">Envio Global</Label>
+                                        <p className="text-xs text-muted-foreground">Habilita/Desabilita notificações via WhatsApp em todo o SaaS.</p>
                                     </div>
                                     <Switch
                                         checked={form.watch('is_whatsapp_active')}
@@ -284,38 +285,38 @@ export default function WhatsAppSettingsPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <Label className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                                        <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
                                             <Globe className="h-3 w-3" /> URL da API
                                         </Label>
                                         <Input
                                             {...form.register('evolution_api_url')}
                                             placeholder="https://api.vimasistemas.com.br"
-                                            className="bg-slate-950/50 border-white/10 rounded-xl"
+                                            className="bg-background border-border rounded-xl"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                                        <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
                                             <Zap className="h-3 w-3" /> Nome da Instância
                                         </Label>
                                         <Input
                                             {...form.register('evolution_instance_name')}
                                             placeholder="managershow_main"
-                                            className="bg-slate-950/50 border-white/10 rounded-xl"
+                                            className="bg-background border-border rounded-xl"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                                    <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
                                         <Key className="h-3 w-3" /> Global API Key
                                     </Label>
                                     <div className="relative">
                                         <Input
                                             type={showApiKey ? "text" : "password"}
                                             {...form.register('evolution_api_key')}
-                                            className="bg-slate-950/50 border-white/10 rounded-xl pr-10"
+                                            className="bg-background border-border rounded-xl pr-10"
                                         />
-                                        <button type="button" onClick={() => setShowApiKey(!showApiKey)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
+                                        <button type="button" onClick={() => setShowApiKey(!showApiKey)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                                             {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                     </div>
@@ -324,7 +325,7 @@ export default function WhatsAppSettingsPage() {
                                 <Button
                                     type="submit"
                                     disabled={saving}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black italic uppercase rounded-xl transition-all shadow-lg shadow-emerald-500/20"
+                                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
                                 >
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
                                     Salvar Configurações
@@ -335,40 +336,40 @@ export default function WhatsAppSettingsPage() {
                 </div>
 
                 <div className="space-y-6">
-                    <Card className="glass-card border-white/5 bg-slate-900/40 shadow-xl overflow-hidden">
-                        <CardHeader className="bg-white/5 border-b border-white/5">
-                            <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">
+                    <Card className="glass-card border-border bg-card/40 shadow-sm overflow-hidden">
+                        <CardHeader className="bg-muted/30 border-b border-border">
+                            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                                 Status Operacional
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-6">
                             <div className="flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Conexão API</span>
+                                    <span className="text-[10px] font-semibold uppercase text-muted-foreground tracking-widest">Conexão API</span>
                                     {status === 'CONNECTED' ? (
-                                        <Badge className="bg-emerald-500/20 text-emerald-500 border-none px-3">CONECTADO</Badge>
+                                        <Badge className="bg-emerald-500/20 text-emerald-500 border-none px-3 font-semibold">CONECTADO</Badge>
                                     ) : status === 'DISCONNECTED' ? (
-                                        <Badge className="bg-amber-500/20 text-amber-500 border-none px-3">DESCONECTADO</Badge>
+                                        <Badge className="bg-amber-500/20 text-amber-500 border-none px-3 font-semibold">DESCONECTADO</Badge>
                                     ) : status === 'NOT_FOUND' ? (
-                                        <Badge className="bg-rose-500/20 text-rose-500 border-none px-3">NÃO ENCONTRADA</Badge>
+                                        <Badge className="bg-rose-500/20 text-rose-500 border-none px-3 font-semibold">NÃO ENCONTRADA</Badge>
                                     ) : (
-                                        <Badge className="bg-slate-500/20 text-slate-500 border-none px-3">Pendente</Badge>
+                                        <Badge className="bg-muted text-muted-foreground border-none px-3 font-semibold">Pendente</Badge>
                                     )}
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Motor de Envio</span>
-                                    <Badge variant="outline" className={form.watch('is_whatsapp_active') ? "border-emerald-500/20 text-emerald-500" : "border-white/10 text-slate-500"}>
+                                    <span className="text-[10px] font-semibold uppercase text-muted-foreground tracking-widest">Motor de Envio</span>
+                                    <Badge variant="outline" className={cn("font-semibold", form.watch('is_whatsapp_active') ? "border-emerald-500/20 text-emerald-500" : "border-border text-muted-foreground")}>
                                         {form.watch('is_whatsapp_active') ? 'ATIVO' : 'DESLIGADO'}
                                     </Badge>
                                 </div>
                             </div>
 
-                            <div className="space-y-3 pt-4 border-t border-white/5">
+                            <div className="space-y-3 pt-4 border-t border-border">
                                 {status === 'NOT_FOUND' && (
                                     <Button
                                         onClick={handleCreateInstance}
                                         disabled={actionLoading}
-                                        className="w-full bg-blue-600 hover:bg-blue-500 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest italic"
+                                        className="w-full bg-blue-600 hover:bg-blue-500 h-11 rounded-xl text-xs font-semibold text-white"
                                     >
                                         {actionLoading ? <Loader2 className="animate-spin" /> : <PlusCircle size={16} className="mr-2" />}
                                         Criar Instância
@@ -379,7 +380,7 @@ export default function WhatsAppSettingsPage() {
                                     <Button
                                         onClick={handleShowQR}
                                         disabled={actionLoading}
-                                        className="w-full bg-emerald-600 hover:bg-emerald-500 h-14 rounded-xl text-xs font-black uppercase tracking-widest italic shadow-lg shadow-emerald-500/20"
+                                        className="w-full bg-emerald-600 hover:bg-emerald-500 h-11 rounded-xl text-xs font-semibold text-white shadow-lg shadow-emerald-500/20"
                                     >
                                         {actionLoading ? <Loader2 className="animate-spin" /> : <QrCode size={18} className="mr-2" />}
                                         Conectar WhatsApp
@@ -392,14 +393,14 @@ export default function WhatsAppSettingsPage() {
                                             <div className="p-3 rounded-full bg-emerald-500/20 mb-3 animate-pulse">
                                                 <CheckCircle2 className="h-10 w-10 text-emerald-500" />
                                             </div>
-                                            <span className="text-xs font-black text-emerald-500 uppercase tracking-[0.2em]">WhatsApp Conectado</span>
-                                            <p className="text-[10px] text-emerald-500/60 font-medium mt-1 uppercase tracking-wider">Pronto para envio</p>
+                                            <span className="text-sm font-semibold text-emerald-500">WhatsApp Conectado</span>
+                                            <p className="text-xs text-emerald-500/70 font-medium mt-1">Pronto para envio</p>
                                         </div>
                                         <Button
                                             onClick={handleLogout}
                                             disabled={actionLoading}
                                             variant="outline"
-                                            className="w-full border-red-500/20 hover:bg-red-500/10 text-red-500 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest italic"
+                                            className="w-full border-red-500/20 hover:bg-red-500/10 text-red-500 h-11 rounded-xl text-xs font-semibold bg-background"
                                         >
                                             {actionLoading ? <Loader2 className="animate-spin" /> : <LogOut size={16} className="mr-2" />}
                                             Desconectar Instância
@@ -410,14 +411,14 @@ export default function WhatsAppSettingsPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="glass-card border-white/5 bg-slate-900/20 p-6">
+                    <Card className="glass-card border-border bg-card/40 p-6 shadow-sm">
                         <div className="flex gap-4 items-start">
                             <div className="p-3 rounded-full bg-blue-500/10">
                                 <ShieldCheck className="h-5 w-5 text-blue-500" />
                             </div>
                             <div className="space-y-1">
-                                <h4 className="text-[10px] font-black uppercase text-white tracking-widest">Segurança de Borda</h4>
-                                <p className="text-[10px] text-slate-500 italic">
+                                <h4 className="text-xs font-semibold text-foreground tracking-wider">Segurança de Borda</h4>
+                                <p className="text-xs text-muted-foreground">
                                     Todas as notificações são disparadas por um motor isolado. Chaves e tokens são mascarados no tráfego.
                                 </p>
                             </div>
@@ -431,12 +432,12 @@ export default function WhatsAppSettingsPage() {
                 if (!open) setQrCode(null);
                 setIsQrModalOpen(open);
             }}>
-                <DialogContent className="sm:max-w-md bg-slate-900 border-white/10 p-0 overflow-hidden rounded-[2rem]">
+                <DialogContent className="sm:max-w-md border-border bg-card p-0 overflow-hidden rounded-[2rem]">
                     <DialogHeader className="p-8 pb-0 text-center">
-                        <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-white">
+                        <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">
                             Escaneie o <span className="text-emerald-500">QR Code</span>
                         </DialogTitle>
-                        <DialogDescription className="text-xs text-slate-500 mt-2">
+                        <DialogDescription className="text-sm text-muted-foreground mt-2">
                             Abra o WhatsApp no seu celular {'>'} Aparelhos Conectados {'>'} Conectar um Aparelho.
                         </DialogDescription>
                     </DialogHeader>
@@ -456,23 +457,23 @@ export default function WhatsAppSettingsPage() {
                                 )}
                             </div>
                         ) : (
-                            <div className="w-64 h-64 flex items-center justify-center rounded-3xl bg-slate-950/50 border border-white/5 border-dashed">
+                            <div className="w-64 h-64 flex items-center justify-center rounded-3xl bg-muted border border-border border-dashed">
                                 <Loader2 className="h-10 w-10 animate-spin text-emerald-500/30" />
                             </div>
                         )}
 
                         <div className="mt-8 flex flex-col items-center gap-2">
-                            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[9px] font-black uppercase text-emerald-500 tracking-widest animate-pulse">
+                            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-500 animate-pulse">
                                 Aguardando Leitura...
                             </span>
-                            <p className="text-[9px] text-slate-600 font-bold uppercase tracking-tight">
+                            <p className="text-xs text-muted-foreground font-medium">
                                 Sincronização automática via Evolution API v2
                             </p>
                         </div>
                     </div>
 
-                    <div className="p-6 bg-slate-950/50 border-t border-white/5 flex justify-center">
-                        <Button variant="ghost" className="text-slate-500 h-10 px-6 rounded-xl hover:text-white" onClick={() => setIsQrModalOpen(false)}>
+                    <div className="p-6 bg-muted/30 border-t border-border flex justify-center">
+                        <Button variant="ghost" className="text-muted-foreground h-10 px-6 rounded-xl hover:text-foreground" onClick={() => setIsQrModalOpen(false)}>
                             <X size={16} className="mr-2" /> Cancelar
                         </Button>
                     </div>

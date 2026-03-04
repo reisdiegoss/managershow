@@ -6,7 +6,7 @@ import { TimelineEvent } from "@/types/show";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import {
     Hotel,
     CloudSun,
@@ -43,7 +43,7 @@ const mockTimeline: TimelineEvent[] = [
 
 export function DaySheetTab({ showId, artistName, date, city }: DaySheetTabProps) {
     const { toast } = useToast();
-    const { api } = useApi();
+    const { api } = useClientApi();
     const [isPublishing, setIsPublishing] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
 

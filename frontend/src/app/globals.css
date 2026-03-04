@@ -21,67 +21,86 @@
 }
 
 :root {
-  /* Slate 950 como fundo principal (Show Business Night) */
-  --background: #020617;
-  --foreground: #f8fafc;
-  /* Slate 50 */
+  /* Stitch Design System - Light Mode (Default) */
+  --background: #ffffff;
+  --foreground: #0f172a;
+  /* Slate 900 */
 
-  --card: rgba(15, 23, 42, 0.8);
-  /* Slate 900 mais sólido */
-  --card-foreground: #f1f5f9;
-  /* Slate 100 */
-
-  --popover: #0f172a;
-  /* Slate 900 sólido para menus */
-  --popover-foreground: #f8fafc;
-
-  --primary: #6366f1;
-  /* Indigo 500 */
-  --primary-foreground: #ffffff;
-
-  --secondary: #1e293b;
-  --secondary-foreground: #cbd5e1;
-
-  --accent: #a855f7;
-  /* Purple 500 */
-  --accent-foreground: #ffffff;
-
-  --muted: #334155;
-  --muted-foreground: #94a3b8;
-
-  --border: rgba(255, 255, 255, 0.1);
-  --radius: 0.75rem;
-
-  /* Gradientes Gold Master */
-  --gradient-gold: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  --gradient-emerald: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.light {
-  --background: #f8fafc;
-  /* Slate 50 */
-  --foreground: #020617;
-  /* Slate 950 */
-
-  --card: rgba(255, 255, 255, 0.9);
+  --card: #ffffff;
   --card-foreground: #0f172a;
 
   --popover: #ffffff;
-  --popover-foreground: #020617;
+  --popover-foreground: #0f172a;
 
-  --primary: #4f46e5;
-  /* Indigo 600 */
+  --primary: #534be7;
+  /* Manager Lavender */
   --primary-foreground: #ffffff;
 
   --secondary: #f1f5f9;
+  /* Slate 100 */
   --secondary-foreground: #475569;
+  /* Slate 600 */
 
-  --accent: #9333ea;
-  --accent-foreground: #ffffff;
+  --accent: #f5f3ff;
+  /* Violet 50 */
+  --accent-foreground: #534be7;
 
-  --muted: #f1f5f9;
+  --muted: #f8fafc;
+  /* Slate 50 */
   --muted-foreground: #64748b;
+  /* Slate 500 */
 
+  --border: #e2e8f0;
+  /* Slate 200 */
+  --radius: 0.5rem;
+  /* 8px - Stitch Standard */
+
+  --gradient-gold: linear-gradient(135deg, #534be7 0%, #8b5cf6 100%);
+  --gradient-emerald: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.dark {
+  /* Stitch Design System - Dark Mode */
+  --background: #020617;
+  /* Slate 950 */
+  --foreground: #f8fafc;
+  /* Slate 50 */
+
+  --card: #0f172a;
+  /* Slate 900 */
+  --card-foreground: #f8fafc;
+
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
+
+  --primary: #534be7;
+  --primary-foreground: #ffffff;
+
+  --secondary: #1e293b;
+  /* Slate 800 */
+  --secondary-foreground: #94a3b8;
+  /* Slate 400 */
+
+  --accent: #1e1b4b;
+  /* Indigo 950 */
+  --accent-foreground: #818cf8;
+  /* Indigo 400 */
+
+  --muted: #0f172a;
+  /* Slate 900 */
+  --muted-foreground: #94a3b8;
+  /* Slate 400 */
+
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+/* Tema Emerald (Admin Legacy - mantendo mas alinhando) */
+[data-theme='admin'],
+.admin-theme {
+  --primary: #10b981;
+  --primary-foreground: #ffffff;
+  --background: #f8fafc;
+  --card: #ffffff;
   --border: #e2e8f0;
 }
 
@@ -89,53 +108,47 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
-  background-attachment: fixed;
-  background-image:
-    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 0% 100%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Efeito Glassmorphism Utilitário */
-.glass-card {
-  background: rgba(15, 23, 42, 0.6);
+/* Glassmorphism Light Premium */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05);
 }
 
-.glass-morphism {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.admin-glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
 }
 
-/* Botões com Gradiente Premium */
-.btn-premium {
+/* Botões Premium */
+.btn-gold {
   background: var(--gradient-gold);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  transition: all 0.3s ease;
 }
 
-.btn-premium:hover {
-  filter: brightness(1.1);
+.btn-emerald {
+  background: var(--gradient-emerald);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-emerald:hover,
+.btn-gold:hover {
+  filter: brightness(1.2);
   transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
-/* Admin Specific */
-.admin-theme {
-  --primary: #10b981;
-  --gradient-primary: var(--gradient-emerald);
-}
-
-/* Custom Scrollbar */
+/* Scrollbar Style */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -143,10 +156,29 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }

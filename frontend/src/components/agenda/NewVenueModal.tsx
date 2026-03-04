@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Landmark } from "lucide-react";
 
@@ -34,7 +34,7 @@ interface NewVenueModalProps {
 
 export function NewVenueModal({ open, onOpenChange, onSuccess }: NewVenueModalProps) {
     const [loading, setLoading] = useState(false);
-    const { api } = useApi();
+    const { api } = useClientApi();
     const { toast } = useToast();
 
     const form = useForm<VenueFormValues>({

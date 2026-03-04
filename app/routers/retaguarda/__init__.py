@@ -19,6 +19,9 @@ from app.routers.retaguarda.tickets import router as tickets_router
 from app.routers.retaguarda.settings import router as settings_router
 from app.routers.retaguarda.dashboard import router as dashboard_router
 from app.routers.retaguarda.plans import router as plans_router
+from app.routers.retaguarda.finance import router as finance_router
+from app.routers.retaguarda.audit import router as audit_router
+from app.routers.retaguarda.billing import router as billing_router
 
 router = APIRouter(prefix="/api/v1/retaguarda", tags=["Retaguarda"])
 
@@ -29,3 +32,6 @@ router.include_router(tickets_router)
 router.include_router(settings_router)
 router.include_router(dashboard_router)
 router.include_router(plans_router)
+router.include_router(finance_router)
+router.include_router(audit_router)
+router.include_router(billing_router)

@@ -5,7 +5,7 @@ import { CRMKanbanBoard } from '@/components/crm/CRMKanbanBoard';
 
 export default function CRMPage() {
     return (
-        <div className="flex flex-col h-full bg-slate-50/50 -m-8 p-8 min-h-[calc(100vh-64px)]">
+        <div className="flex flex-col h-full min-h-[calc(100vh-64px)] w-full">
             <CRMKanbanBoard />
         </div>
     );

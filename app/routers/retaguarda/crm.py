@@ -1,8 +1,7 @@
 """
 Manager Show — Router: CRM (Retaguarda) — 100% Operacional
 
-CRUD completo de Leads para prospecção de novos escritórios/produtoras.
-Funil de vendas: NOVO → CONTATADO → QUALIFICADO → PROPOSTA → CONVERTIDO / PERDIDO
+CRUD completo de Leads para prospecção de novos clientes do SaaS.
 """
 
 import uuid
@@ -12,8 +11,8 @@ from sqlalchemy import func, select
 
 from app.core.dependencies import DbSession
 from app.core.auth import get_current_super_admin
-from app.models.lead import Lead, LeadStatus
-from app.schemas.lead import LeadCreate, LeadResponse, LeadUpdate
+from app.models.saas_lead import SaaSLead, SaaSLeadStatus
+from app.schemas.saas_lead import SaaSLeadCreate, SaaSLeadResponse, SaaSLeadUpdate
 from app.schemas.common import PaginatedResponse
 
 router = APIRouter(
@@ -23,22 +22,22 @@ router = APIRouter(
 )
 
 
-@router.get("/leads", summary="List Leads", response_model=PaginatedResponse[LeadResponse])
+@router.get("/leads", summary="List Leads", response_model=PaginatedResponse[SaaSLeadResponse])
 async def list_leads(
     db: DbSession,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    status: LeadStatus | None = Query(None, description="Filtrar por status"),
+    status: SaaSLeadStatus | None = Query(None, description="Filtrar por status"),
 ) -> dict:
     """Lista os leads do funil de prospecção."""
-    count_stmt = select(func.count()).select_from(Lead)
+    count_stmt = select(func.count()).select_from(SaaSLead)
     if status:
-        count_stmt = count_stmt.where(Lead.status == status)
+        count_stmt = count_stmt.where(SaaSLead.status == status)
     total = (await db.execute(count_stmt)).scalar() or 0
 
-    stmt = select(Lead).order_by(Lead.created_at.desc())
+    stmt = select(SaaSLead).order_by(SaaSLead.created_at.desc())
     if status:
-        stmt = stmt.where(Lead.status == status)
+        stmt = stmt.where(SaaSLead.status == status)
     stmt = stmt.offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(stmt)
     leads = result.scalars().all()
@@ -52,26 +51,26 @@ async def list_leads(
     }
 
 
-@router.post("/leads", summary="Create Lead", response_model=LeadResponse, status_code=201)
+@router.post("/leads", summary="Create Lead", response_model=SaaSLeadResponse, status_code=201)
 async def create_lead(
-    payload: LeadCreate,
+    payload: SaaSLeadCreate,
     db: DbSession,
-) -> Lead:
+) -> SaaSLead:
     """Cria um novo lead no funil de prospecção."""
-    lead = Lead(**payload.model_dump())
+    lead = SaaSLead(**payload.model_dump())
     db.add(lead)
     await db.flush()
     await db.refresh(lead)
     return lead
 
 
-@router.get("/leads/{lead_id}", summary="Get Lead", response_model=LeadResponse)
+@router.get("/leads/{lead_id}", summary="Get Lead", response_model=SaaSLeadResponse)
 async def get_lead(
     lead_id: uuid.UUID,
     db: DbSession,
-) -> Lead:
+) -> SaaSLead:
     """Busca um lead específico pelo ID."""
-    stmt = select(Lead).where(Lead.id == lead_id)
+    stmt = select(SaaSLead).where(SaaSLead.id == lead_id)
     result = await db.execute(stmt)
     lead = result.scalar_one_or_none()
     if not lead:
@@ -79,14 +78,14 @@ async def get_lead(
     return lead
 
 
-@router.patch("/leads/{lead_id}", summary="Update Lead", response_model=LeadResponse)
+@router.patch("/leads/{lead_id}", summary="Update Lead", response_model=SaaSLeadResponse)
 async def update_lead(
     lead_id: uuid.UUID,
-    payload: LeadUpdate,
+    payload: SaaSLeadUpdate,
     db: DbSession,
-) -> Lead:
+) -> SaaSLead:
     """Atualiza parcialmente um lead (ex: avançar no funil)."""
-    stmt = select(Lead).where(Lead.id == lead_id)
+    stmt = select(SaaSLead).where(SaaSLead.id == lead_id)
     result = await db.execute(stmt)
     lead = result.scalar_one_or_none()
     if not lead:
@@ -107,7 +106,7 @@ async def delete_lead(
     db: DbSession,
 ) -> None:
     """Remove um lead do funil."""
-    stmt = select(Lead).where(Lead.id == lead_id)
+    stmt = select(SaaSLead).where(SaaSLead.id == lead_id)
     result = await db.execute(stmt)
     lead = result.scalar_one_or_none()
     if not lead:

@@ -6,7 +6,7 @@ import { Building2, MapPin, DollarSign, Calendar, TrendingUp, History, ListFilte
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { useApi } from '@/lib/api';
+import { useClientApi } from '@/lib/api/useClientApi';
 import { ContractorNote } from '@/types/crm';
 import { Show } from '@/types/show';
 import { Contractor } from '@/types/base';
@@ -18,7 +18,7 @@ interface ContractorPageProps {
 }
 
 export default function ContractorProfilePage({ params }: ContractorPageProps) {
-    const { api } = useApi();
+    const { api } = useClientApi();
     const [contractor, setContractor] = useState<Contractor | null>(null);
     const [notes, setNotes] = useState<ContractorNote[]>([]);
     const [shows, setShows] = useState<Show[]>([]);

@@ -5,13 +5,13 @@ Gerencia o upload de fotos/arquivos de recibos para o S3.
 """
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.core.dependencies import CurrentUser, DbSession
+from app.core.dependencies import CurrentUser, DbSession, TenantId
 from app.services.s3_service import S3Service
 
 router = APIRouter(prefix="/receipts", tags=["Client — Receipts"])
 
 @router.post("/upload", status_code=201)
-async def upload_receipt(
+async def upload_receipt(tenant_id: TenantId, 
     file: UploadFile = File(...),
     current_user: CurrentUser = None,
 ):

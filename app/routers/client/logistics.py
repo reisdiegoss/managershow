@@ -37,7 +37,7 @@ router = APIRouter(prefix="/shows/{show_id}/logistics", tags=["Client — Logís
     response_model=FinancialTransactionResponse,
     status_code=201,
 )
-async def add_logistics_cost(
+async def add_logistics_cost(tenant_id: TenantId, 
     show_id: uuid.UUID,
     payload: FinancialTransactionCreate,
     db: DbSession,
@@ -53,7 +53,7 @@ async def add_logistics_cost(
 
     BODY validado pelo schema FinancialTransactionCreate (Pydantic V2 com Decimal).
     """
-    tenant_id = current_user.tenant_id
+    # tenant_id injetado via dependência
 
     # Buscar show com filtro multi-tenant
     stmt = tenant_query(Show, tenant_id).where(Show.id == show_id)

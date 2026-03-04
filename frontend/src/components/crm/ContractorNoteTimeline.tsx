@@ -7,7 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import { User, MessageSquarePlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useApi } from '@/lib/api';
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ContractorNoteTimelineProps {
@@ -16,7 +16,7 @@ interface ContractorNoteTimelineProps {
 }
 
 export function ContractorNoteTimeline({ contractorId, initialNotes }: ContractorNoteTimelineProps) {
-    const { addContractorNote } = useApi();
+    const { addContractorNote } = useClientApi();
     const { toast } = useToast();
     const [notes, setNotes] = useState<ContractorNote[]>(initialNotes);
     const [newNote, setNewNote] = useState('');

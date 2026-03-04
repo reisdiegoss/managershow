@@ -16,7 +16,7 @@ import {
     verticalListSortingStrategy
 } from "@dnd-kit/sortable";
 
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { Show, ShowStatus } from "@/types/show";
 import { DroppableColumn } from "./DroppableColumn";
 import { SortableShowCard } from "./SortableShowCard";
@@ -38,7 +38,7 @@ const COLUMNS: { label: string; status: ShowStatus }[] = [
  * Gerencia o fetch de dados, agrupamento e exibição das raias.
  */
 export function KanbanBoard({ currentDate }: { currentDate: Date }) {
-    const { api, updateShowStatus } = useApi();
+    const { api, updateShowStatus } = useClientApi();
     const { toast } = useToast();
     const [shows, setShows] = useState<Show[]>([]);
     const [loading, setLoading] = useState(true);

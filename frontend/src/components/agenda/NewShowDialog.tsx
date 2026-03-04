@@ -29,7 +29,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from "@/components/ui/use-toast";
 import { ProfitLight } from "./ProfitLight";
 import { Plus, Calculator, Sparkles, Calendar as CalendarIcon, Loader2, UserPlus, Landmark } from "lucide-react";
@@ -70,7 +70,7 @@ export function NewShowDialog({ onShowCreated }: { onShowCreated?: () => void })
     const [contractors, setContractors] = useState<any[]>([]);
     const [venues, setVenues] = useState<any[]>([]);
 
-    const { api, simulateShow, createShow } = useApi();
+    const { api, simulateShow, createShow } = useClientApi();
     const { toast } = useToast();
 
     const form = useForm<ShowFormValues>({

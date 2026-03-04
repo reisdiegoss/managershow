@@ -5,7 +5,7 @@ import { TeamMember, CacheType } from "@/types/show";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
-import { useApi } from "@/lib/api";
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from "@/components/ui/use-toast";
 import { Users2, CheckCircle2, XCircle, AlertTriangle, Zap, MinusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";

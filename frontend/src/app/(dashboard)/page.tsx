@@ -58,10 +58,10 @@ export default function DashboardPage() {
         <div className="space-y-8 pb-12">
             {/* Header do Dashboard */}
             <div>
-                <h1 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900">
-                    Visão de <span className="text-indigo-600">Águia</span>
+                <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+                    Visão de <span className="text-primary">Águia</span>
                 </h1>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                <p className="text-sm font-medium text-muted-foreground mt-1">
                     Performance Global da Produtora — Últimos 6 meses
                 </p>
             </div>
@@ -101,12 +101,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Gráficos */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Receita vs Despesa */}
-                <Card className="lg:col-span-2 rounded-[2.5rem] border-slate-100 p-8 shadow-sm bg-white">
-                    <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Receita vs Despesa</h3>
-                        <Badge variant="outline" className="rounded-full text-[10px] font-black uppercase">Consolidado Semestral</Badge>
+                <Card className="lg:col-span-2 rounded-xl border border-border p-6 shadow-sm bg-card">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-base font-bold text-foreground">Receita vs Despesa</h3>
+                        <Badge variant="outline" className="rounded-lg text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Consolidado Semestral</Badge>
                     </div>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -126,9 +126,9 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Share por Artista */}
-                <Card className="rounded-[2.5rem] border-slate-100 p-8 shadow-sm bg-white">
-                    <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Share por Artista</h3>
+                <Card className="rounded-xl border border-border p-6 shadow-sm bg-card">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-base font-bold text-foreground">Share por Artista</h3>
                     </div>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -165,37 +165,38 @@ export default function DashboardPage() {
 function KPICard({ title, value, subValue, icon: Icon, trend, highlight, alert }: any) {
     return (
         <Card className={cn(
-            "rounded-[2.5rem] p-8 shadow-sm transition-all border-slate-100",
-            highlight ? "bg-indigo-600 text-white border-0 shadow-indigo-200 shadow-xl" : "bg-white",
-            alert ? "bg-rose-50 border-rose-100" : ""
+            "rounded-xl p-6 shadow-sm transition-all border border-border",
+            highlight ? "bg-primary text-primary-foreground border-transparent shadow-md shadow-primary/20" : "bg-card",
+            alert ? "bg-rose-50 border-rose-200 dark:bg-rose-950/20 dark:border-rose-900" : ""
         )}>
             <div className="flex items-center justify-between mb-4">
                 <div className={cn(
-                    "p-3 rounded-2xl",
-                    highlight ? "bg-white/20" : "bg-slate-50",
-                    alert ? "bg-rose-100" : ""
+                    "p-2.5 rounded-lg",
+                    highlight ? "bg-white/20 text-white" : "bg-primary/10 text-primary",
+                    alert ? "bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400" : ""
                 )}>
-                    <Icon className={cn("h-6 w-6", highlight ? "text-white" : "text-indigo-600", alert ? "text-rose-600" : "")} />
+                    <Icon className="h-5 w-5" />
                 </div>
                 {trend !== 'neutral' && (
                     <div className={cn(
-                        "flex items-center gap-1 text-[10px] font-black uppercase",
-                        trend === 'up' ? (highlight ? "text-emerald-300" : "text-emerald-600") : "text-rose-500"
+                        "flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider",
+                        trend === 'up' ? (highlight ? "text-emerald-100" : "text-emerald-600 dark:text-emerald-400") : "text-rose-600 dark:text-rose-400"
                     )}>
                         {trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                         {trend === 'up' ? "Alta" : "Risco"}
                     </div>
                 )}
             </div>
-            <p className={cn("text-[10px] font-black uppercase tracking-widest mb-1", highlight ? "text-white/60" : "text-slate-400")}>
+            <p className={cn("text-xs font-bold uppercase tracking-widest mb-1", highlight ? "text-primary-foreground/80" : "text-muted-foreground")}>
                 {title}
             </p>
-            <p className={cn("text-3xl font-black italic tracking-tighter tabular-nums", highlight ? "text-white" : "text-slate-900")}>
+            <p className={cn("text-3xl font-extrabold tracking-tight tabular-nums", highlight ? "text-primary-foreground" : "text-foreground")}>
                 {value}
             </p>
-            <p className={cn("text-[10px] font-bold mt-2", highlight ? "text-white/80" : "text-slate-500")}>
+            <p className={cn("text-xs font-medium mt-1.5", highlight ? "text-primary-foreground/90" : "text-muted-foreground")}>
                 {subValue}
             </p>
         </Card>
     );
 }
+

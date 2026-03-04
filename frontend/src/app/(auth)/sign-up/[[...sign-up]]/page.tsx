@@ -9,7 +9,7 @@ export default function Page() {
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-xl shadow-indigo-500/20">
                         <span className="text-2xl font-bold text-white italic">M</span>
                     </div>
-                    <h1 className="text-2xl font-black italic uppercase tracking-tighter text-slate-50">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-50">
                         Manager <span className="text-indigo-500">Show</span>
                     </h1>
                 </div>

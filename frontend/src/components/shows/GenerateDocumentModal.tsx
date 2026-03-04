@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Download, Loader2 } from 'lucide-react';
-import { useApi } from '@/lib/api';
+import { useClientApi } from '@/lib/api/useClientApi';
 import { useToast } from '@/components/ui/use-toast';
 import { DocumentTemplate } from '@/types/document';
 
@@ -25,7 +25,7 @@ interface GenerateDocumentModalProps {
 }
 
 export function GenerateDocumentModal({ isOpen, onClose, template, entityId }: GenerateDocumentModalProps) {
-    const { api } = useApi();
+    const { api } = useClientApi();
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
     const [variables, setVariables] = useState<{ key: string; value: string }[]>([]);
